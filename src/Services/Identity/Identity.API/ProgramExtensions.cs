@@ -62,13 +62,15 @@ public static class ProgramExtensions
             options.Events.RaiseInformationEvents = true;
             options.Events.RaiseFailureEvents = true;
             options.Events.RaiseSuccessEvents = true;
+
+            options.KeyManagement.Enabled = false;
         })
                 .AddInMemoryIdentityResources(Config.GetResources())
                 .AddInMemoryApiScopes(Config.GetApiScopes())
                 .AddInMemoryApiResources(Config.GetApis())
                 .AddInMemoryClients(Config.GetClients(builder.Configuration))
                 .AddAspNetIdentity<ApplicationUser>();
-
+        
         // not recommended for production - you need to store your key material somewhere secure
         identityServerBuilder.AddDeveloperSigningCredential();
     }

@@ -106,7 +106,6 @@ namespace Microsoft.eShopOnContainers.Services.Identity.API.Configuration
                     ClientName = "MVC Client",
                     ClientSecrets = new List<Secret>
                     {
-
                         new Secret("secret".Sha256())
                     },
                     ClientUri = $"{configuration["MvcClient"]}",                             // public uri of the client
