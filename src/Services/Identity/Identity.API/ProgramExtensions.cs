@@ -1,4 +1,4 @@
-﻿using Serilog;
+using Serilog;
 
 namespace Microsoft.eShopOnContainers.Services.Identity.API;
 
@@ -63,6 +63,7 @@ public static class ProgramExtensions
             options.Events.RaiseFailureEvents = true;
             options.Events.RaiseSuccessEvents = true;
 
+            // TODO: Remove this line in production.
             options.KeyManagement.Enabled = false;
         })
                 .AddInMemoryIdentityResources(Config.GetResources())
