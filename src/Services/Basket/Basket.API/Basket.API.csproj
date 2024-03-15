@@ -14,7 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="8.0.2"/>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="8.0.3" />
     <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="7.4.0"/>
     <PackageReference Include="Azure.Identity" Version="1.10.4"/>
     <PackageReference Include="AspNetCore.HealthChecks.AzureServiceBus" Version="8.0.0"/>
@@ -29,7 +29,7 @@
     <PackageReference Include="Microsoft.ApplicationInsights.AspNetCore" Version="2.22.0"/>
     <PackageReference Include="Microsoft.ApplicationInsights.DependencyCollector" Version="2.22.0"/>
     <PackageReference Include="Microsoft.ApplicationInsights.Kubernetes" Version="6.1.2"/>
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.2"/>
+    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.3" />
     <PackageReference Include="Microsoft.AspNetCore.Diagnostics.HealthChecks" Version="2.2.0"/>
     <PackageReference Include="Microsoft.AspNetCore.HealthChecks" Version="1.0.0"/>
     <PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" Version="8.0.2"/>
