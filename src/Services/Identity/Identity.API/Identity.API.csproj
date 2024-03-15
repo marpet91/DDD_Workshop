@@ -72,21 +72,6 @@
 	  <None Include="Views\_ViewImports.cshtml" />
 	  <None Include="Views\_ViewStart.cshtml" />
 	</ItemGroup>
-
-	<ItemGroup>
-	  <_ContentIncludedByDefault Remove="keys\is-signing-key-01FB50CB2F71EC479769E2D9B6939E26.json" />
-	  <_ContentIncludedByDefault Remove="keys\is-signing-key-10C452043E09C5A22FC8D97669868B8F.json" />
-	  <_ContentIncludedByDefault Remove="keys\is-signing-key-1417AE0BAF26F393609EF30FA355D06C.json" />
-	  <_ContentIncludedByDefault Remove="keys\is-signing-key-22178AEDB80CD0A41DF6874FE93F794D.json" />
-	  <_ContentIncludedByDefault Remove="keys\is-signing-key-2BA9CEF932029C29C8A579F8B2D82F91.json" />
-	  <_ContentIncludedByDefault Remove="keys\is-signing-key-3139DF3FF07C8E3881CFA9743F89A787.json" />
-	  <_ContentIncludedByDefault Remove="keys\is-signing-key-870FA7120249C21C30ADE458B07918C1.json" />
-	  <_ContentIncludedByDefault Remove="keys\is-signing-key-88092D0186F42164323510A7AA89A441.json" />
-	  <_ContentIncludedByDefault Remove="keys\is-signing-key-9C59578282159847C82B3F6CB1C2EE94.json" />
-	  <_ContentIncludedByDefault Remove="keys\is-signing-key-B0B34AEB91E2638F61EB9A5543F3940F.json" />
-	  <_ContentIncludedByDefault Remove="keys\is-signing-key-CFE19FEED1112F0740C7CEAAE490834F.json" />
-	  <_ContentIncludedByDefault Remove="keys\is-signing-key-D2374790231E75DA48EB0F31D9F7B73F.json" />
-	</ItemGroup>
 	<ProjectExtensions>
 		<VisualStudio>
 			<UserProperties appsettings_1json__JsonSchema="" />
