@@ -175,6 +175,8 @@ static class ServiceCollectionExtensions
             options.SaveTokens = true;
             options.GetClaimsFromUserInfoEndpoint = true;
             options.RequireHttpsMetadata = false;
+            options.CorrelationCookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+            options.NonceCookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
             options.Scope.Add("openid");
             options.Scope.Add("profile");
             options.Scope.Add("orders");

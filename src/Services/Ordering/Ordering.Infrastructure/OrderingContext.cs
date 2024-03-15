@@ -143,6 +143,11 @@ public class OrderingContextDesignFactory : IDesignTimeDbContextFactory<Ordering
             return Task.FromResult<TResponse>(default(TResponse));
         }
 
+        public Task Send<TRequest>(TRequest request, CancellationToken cancellationToken = new CancellationToken()) where TRequest : IRequest
+        {
+            return Task.CompletedTask;
+        }
+
         public Task<object> Send(object request, CancellationToken cancellationToken = default)
         {
             return Task.FromResult(default(object));
