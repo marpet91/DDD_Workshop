@@ -15,7 +15,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="8.0.3" />
-    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="7.4.0"/>
+    <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="7.3.1" />
     <PackageReference Include="Azure.Identity" Version="1.10.4"/>
     <PackageReference Include="AspNetCore.HealthChecks.AzureServiceBus" Version="8.0.0"/>
     <PackageReference Include="AspNetCore.HealthChecks.Rabbitmq" Version="8.0.0"/>
