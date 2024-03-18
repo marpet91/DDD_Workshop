@@ -28,11 +28,6 @@ public class Startup
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
     {
-        // JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Remove("sub");
-        JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
-        JwtSecurityTokenHandler.DefaultOutboundClaimTypeMap.Clear();
-        JwtSecurityTokenHandler.DefaultInboundClaimFilter.Clear();
-        
         if (env.IsDevelopment())
         {
             app.UseDeveloperExceptionPage();

@@ -149,12 +149,6 @@ public class Startup
 
     private void ConfigureAuthService(IServiceCollection services)
     {
-        // prevent from mapping "sub" claim to nameidentifier.
-        // JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Remove("sub");
-        JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
-        JwtSecurityTokenHandler.DefaultOutboundClaimTypeMap.Clear();
-        JwtSecurityTokenHandler.DefaultInboundClaimFilter.Clear();
-
         var identityUrl = Configuration.GetValue<string>("IdentityUrl");
 
         services.AddAuthentication("Bearer").AddJwtBearer(options =>
@@ -162,6 +156,7 @@ public class Startup
             options.Authority = identityUrl;
             options.RequireHttpsMetadata = false;
             options.Audience = "orders.signalrhub";
+            options.MapInboundClaims = false;
             options.TokenValidationParameters.ValidateAudience = false;
             options.Events = new JwtBearerEvents
             {

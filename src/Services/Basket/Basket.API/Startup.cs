@@ -212,11 +212,6 @@ public class Startup
 
     private void ConfigureAuthService(IServiceCollection services)
     {
-        // prevent from mapping "sub" claim to nameidentifier.
-        // JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Remove("sub");
-        JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
-        JwtSecurityTokenHandler.DefaultOutboundClaimTypeMap.Clear();
-        JwtSecurityTokenHandler.DefaultInboundClaimFilter.Clear();
 
         var identityUrl = Configuration.GetValue<string>("IdentityUrl");
 
@@ -225,6 +220,7 @@ public class Startup
             options.Authority = identityUrl;
             options.RequireHttpsMetadata = false;
             options.Audience = "basket";
+            options.MapInboundClaims = false;
             options.TokenValidationParameters.ValidateAudience = false;
         });
         services.AddAuthorization(options =>

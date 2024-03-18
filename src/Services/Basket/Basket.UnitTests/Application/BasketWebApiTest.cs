@@ -114,7 +114,7 @@ public class BasketWebApiTest
                     new ClaimsIdentity(new Claim[] {
                         new Claim("sub", "testuser"),
                         new Claim("unique_name", "testuser"),
-                        new Claim(ClaimTypes.Name, "testuser")
+                        new Claim("name", "testuser")
                             }))
             }
         };

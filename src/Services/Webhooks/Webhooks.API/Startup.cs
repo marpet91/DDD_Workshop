@@ -291,12 +291,6 @@ internal static class CustomExtensionMethods
 
     public static IServiceCollection AddCustomAuthentication(this IServiceCollection services, IConfiguration configuration)
     {
-        // prevent from mapping "sub" claim to nameidentifier.
-        // JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Remove("sub");
-        JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
-        JwtSecurityTokenHandler.DefaultOutboundClaimTypeMap.Clear();
-        JwtSecurityTokenHandler.DefaultInboundClaimFilter.Clear();
-
         var identityUrl = configuration.GetValue<string>("IdentityUrl");
 
         services.AddAuthentication(options =>
@@ -309,6 +303,7 @@ internal static class CustomExtensionMethods
             options.Authority = identityUrl;
             options.RequireHttpsMetadata = false;
             options.Audience = "webhooks";
+            options.MapInboundClaims = false;
             options.TokenValidationParameters.ValidateAudience = false;
         });
 
