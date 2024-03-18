@@ -116,5 +116,7 @@ public class BasketService : IBasketService
         var basketContent = new StringContent(JsonSerializer.Serialize(newItem), System.Text.Encoding.UTF8, "application/json");
 
         var response = await _apiClient.PostAsync(uri, basketContent);
+
+        response.EnsureSuccessStatusCode();
     }
 }

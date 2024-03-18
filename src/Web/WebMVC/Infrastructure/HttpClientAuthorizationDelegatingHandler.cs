@@ -4,10 +4,12 @@ public class HttpClientAuthorizationDelegatingHandler
     : DelegatingHandler
 {
     private readonly IHttpContextAccessor _httpContextAccessor;
+    private readonly ILogger<HttpClientAuthorizationDelegatingHandler> _logger;
 
-    public HttpClientAuthorizationDelegatingHandler(IHttpContextAccessor httpContextAccessor)
+    public HttpClientAuthorizationDelegatingHandler(IHttpContextAccessor httpContextAccessor, ILogger<HttpClientAuthorizationDelegatingHandler> logger)
     {
         _httpContextAccessor = httpContextAccessor;
+        _logger = logger;
     }
 
     protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
@@ -21,6 +23,8 @@ public class HttpClientAuthorizationDelegatingHandler
         }
 
         var token = await GetToken();
+        
+        _logger.LogInformation("Retrieved token: {token}", token);
 
         if (token != null)
         {

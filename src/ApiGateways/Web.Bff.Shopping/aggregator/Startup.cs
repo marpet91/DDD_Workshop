@@ -84,7 +84,10 @@ public static class ServiceCollectionExtensions
 {
     public static IServiceCollection AddCustomAuthentication(this IServiceCollection services, IConfiguration configuration)
     {
-        JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Remove("sub");
+        // JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Remove("sub");
+        JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
+        JwtSecurityTokenHandler.DefaultOutboundClaimTypeMap.Clear();
+        JwtSecurityTokenHandler.DefaultInboundClaimFilter.Clear();
 
         var identityUrl = configuration.GetValue<string>("urls:identity");
         services.AddAuthentication("Bearer")

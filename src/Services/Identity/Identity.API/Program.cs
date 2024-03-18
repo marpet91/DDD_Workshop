@@ -1,6 +1,11 @@
 ﻿var appName = "Identity.API";
 var builder = WebApplication.CreateBuilder();
 
+JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
+JwtSecurityTokenHandler.DefaultOutboundClaimTypeMap.Clear();
+JwtSecurityTokenHandler.DefaultInboundClaimFilter.Clear();
+
+
 builder.AddCustomConfiguration();
 builder.AddCustomSerilog();
 builder.AddCustomMvc();

@@ -213,7 +213,10 @@ public class Startup
     private void ConfigureAuthService(IServiceCollection services)
     {
         // prevent from mapping "sub" claim to nameidentifier.
-        JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Remove("sub");
+        // JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Remove("sub");
+        JwtSecurityTokenHandler.DefaultInboundClaimTypeMap.Clear();
+        JwtSecurityTokenHandler.DefaultOutboundClaimTypeMap.Clear();
+        JwtSecurityTokenHandler.DefaultInboundClaimFilter.Clear();
 
         var identityUrl = Configuration.GetValue<string>("IdentityUrl");
 

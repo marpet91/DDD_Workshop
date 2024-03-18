@@ -190,6 +190,7 @@ services:
   mobileshoppingagg:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://0.0.0.0:80
       - urls__basket=http://basket-api
       - urls__catalog=http://catalog-api
       - urls__orders=http://ordering-api
@@ -209,6 +210,7 @@ services:
   webshoppingagg:
     environment:
       - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://0.0.0.0:80
       - urls__basket=http://basket-api
       - urls__catalog=http://catalog-api
       - urls__orders=http://ordering-api
