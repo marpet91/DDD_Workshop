@@ -8,6 +8,7 @@ public class OrdersWebApiTest
     private readonly Mock<IOrderQueries> _orderQueriesMock;
     private readonly Mock<IIdentityService> _identityServiceMock;
     private readonly Mock<ILogger<OrdersController>> _loggerMock;
+    private readonly Mock<IOrderRepository> _orderRepositoryMock;
 
     public OrdersWebApiTest()
     {
@@ -15,6 +16,7 @@ public class OrdersWebApiTest
         _orderQueriesMock = new Mock<IOrderQueries>();
         _identityServiceMock = new Mock<IIdentityService>();
         _loggerMock = new Mock<ILogger<OrdersController>>();
+        _orderRepositoryMock = new Mock<IOrderRepository>();
     }
 
     [Fact]
@@ -25,7 +27,7 @@ public class OrdersWebApiTest
             .Returns(Task.FromResult(true));
 
         //Act
-        var orderController = new OrdersController(_mediatorMock.Object, _orderQueriesMock.Object, _identityServiceMock.Object, _loggerMock.Object);
+        var orderController = new OrdersController(_mediatorMock.Object, _orderQueriesMock.Object, _identityServiceMock.Object, _loggerMock.Object, _orderRepositoryMock.Object, TODO);
         var actionResult = await orderController.CancelOrderAsync(new CancelOrderCommand(1), Guid.NewGuid().ToString()) as OkResult;
 
         //Assert
@@ -41,7 +43,7 @@ public class OrdersWebApiTest
             .Returns(Task.FromResult(true));
 
         //Act
-        var orderController = new OrdersController(_mediatorMock.Object, _orderQueriesMock.Object, _identityServiceMock.Object, _loggerMock.Object);
+        var orderController = new OrdersController(_mediatorMock.Object, _orderQueriesMock.Object, _identityServiceMock.Object, _loggerMock.Object, _orderRepositoryMock.Object, TODO);
         var actionResult = await orderController.CancelOrderAsync(new CancelOrderCommand(1), String.Empty) as BadRequestResult;
 
         //Assert
@@ -56,7 +58,7 @@ public class OrdersWebApiTest
             .Returns(Task.FromResult(true));
 
         //Act
-        var orderController = new OrdersController(_mediatorMock.Object, _orderQueriesMock.Object, _identityServiceMock.Object, _loggerMock.Object);
+        var orderController = new OrdersController(_mediatorMock.Object, _orderQueriesMock.Object, _identityServiceMock.Object, _loggerMock.Object, _orderRepositoryMock.Object, TODO);
         var actionResult = await orderController.ShipOrderAsync(new ShipOrderCommand(1), Guid.NewGuid().ToString()) as OkResult;
 
         //Assert
@@ -72,7 +74,7 @@ public class OrdersWebApiTest
             .Returns(Task.FromResult(true));
 
         //Act
-        var orderController = new OrdersController(_mediatorMock.Object, _orderQueriesMock.Object, _identityServiceMock.Object, _loggerMock.Object);
+        var orderController = new OrdersController(_mediatorMock.Object, _orderQueriesMock.Object, _identityServiceMock.Object, _loggerMock.Object, _orderRepositoryMock.Object, TODO);
         var actionResult = await orderController.ShipOrderAsync(new ShipOrderCommand(1), String.Empty) as BadRequestResult;
 
         //Assert
@@ -92,7 +94,7 @@ public class OrdersWebApiTest
             .Returns(Task.FromResult(fakeDynamicResult));
 
         //Act
-        var orderController = new OrdersController(_mediatorMock.Object, _orderQueriesMock.Object, _identityServiceMock.Object, _loggerMock.Object);
+        var orderController = new OrdersController(_mediatorMock.Object, _orderQueriesMock.Object, _identityServiceMock.Object, _loggerMock.Object, _orderRepositoryMock.Object, TODO);
         var actionResult = await orderController.GetOrdersAsync();
 
         //Assert
@@ -109,7 +111,7 @@ public class OrdersWebApiTest
             .Returns(Task.FromResult(fakeDynamicResult));
 
         //Act
-        var orderController = new OrdersController(_mediatorMock.Object, _orderQueriesMock.Object, _identityServiceMock.Object, _loggerMock.Object);
+        var orderController = new OrdersController(_mediatorMock.Object, _orderQueriesMock.Object, _identityServiceMock.Object, _loggerMock.Object, _orderRepositoryMock.Object, TODO);
         var actionResult = await orderController.GetOrderAsync(fakeOrderId) as OkObjectResult;
 
         //Assert
@@ -125,7 +127,7 @@ public class OrdersWebApiTest
             .Returns(Task.FromResult(fakeDynamicResult));
 
         //Act
-        var orderController = new OrdersController(_mediatorMock.Object, _orderQueriesMock.Object, _identityServiceMock.Object, _loggerMock.Object);
+        var orderController = new OrdersController(_mediatorMock.Object, _orderQueriesMock.Object, _identityServiceMock.Object, _loggerMock.Object, _orderRepositoryMock.Object, TODO);
         var actionResult = await orderController.GetCardTypesAsync();
 
         //Assert

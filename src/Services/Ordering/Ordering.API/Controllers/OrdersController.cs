@@ -1,8 +1,8 @@
 ﻿namespace Microsoft.eShopOnContainers.Services.Ordering.API.Controllers;
 
 using Microsoft.eShopOnContainers.BuildingBlocks.EventBus.Extensions;
-using Microsoft.eShopOnContainers.Services.Ordering.API.Application.Commands;
-using Microsoft.eShopOnContainers.Services.Ordering.API.Application.Queries;
+using Application.Commands;
+using Application.Queries;
 using Microsoft.eShopOnContainers.Services.Ordering.API.Infrastructure.Services;
 
 [Route("api/v1/[controller]")]
@@ -14,19 +14,83 @@ public class OrdersController : ControllerBase
     private readonly IOrderQueries _orderQueries;
     private readonly IIdentityService _identityService;
     private readonly ILogger<OrdersController> _logger;
+    private readonly IOrderRepository _orderRepository;
+    private readonly IBuyerRepository _buyerRepository;
 
-    public OrdersController(
-        IMediator mediator,
+    public OrdersController(IMediator mediator,
         IOrderQueries orderQueries,
         IIdentityService identityService,
-        ILogger<OrdersController> logger)
+        ILogger<OrdersController> logger, IOrderRepository orderRepository, IBuyerRepository buyerRepository)
     {
         _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
         _orderQueries = orderQueries ?? throw new ArgumentNullException(nameof(orderQueries));
         _identityService = identityService ?? throw new ArgumentNullException(nameof(identityService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
+        _orderRepository = orderRepository;
+        _buyerRepository = buyerRepository;
     }
 
+    [Route("new")]
+    [HttpPut]
+    [ProducesResponseType((int)HttpStatusCode.OK)]
+    [ProducesResponseType((int)HttpStatusCode.BadRequest)]
+    public async Task<IActionResult> NewOrderAsync([FromBody] NewOrder message, [FromHeader(Name = "x-requestid")] string requestId)
+    {
+        // Get the user info
+        var userId = HttpContext.User.FindFirst("sub").Value;
+        var userName = HttpContext.User.FindFirst("name").Value;
+
+        // Create the order
+        var address = new Address(message.Street, message.City, message.State, message.Country, message.ZipCode);
+        var order = new Domain.AggregatesModel.OrderAggregate.Order(userId, userName, address, message.CardTypeId, message.CardNumber, message.CardSecurityNumber, message.CardHolderName, message.CardExpiration);
+
+        foreach (var item in message.OrderItems)
+        {
+            order.AddOrderItem(item.ProductId, item.ProductName, item.UnitPrice, item.Discount, item.PictureUrl, item.Units);
+        }
+
+        _orderRepository.Add(order);
+
+        var result = await _orderRepository.UnitOfWork
+            .SaveEntitiesAsync();
+
+        if (!result)
+        {
+            return BadRequest();
+        }
+
+        // Create or update the buyer details
+        var cardTypeId = (message.CardTypeId != 0) ? message.CardTypeId : 1;
+        var buyer = await _buyerRepository.FindAsync(userId);
+        bool buyerOriginallyExisted = (buyer == null) ? false : true;
+
+        if (!buyerOriginallyExisted)
+        {
+            buyer = new Buyer(userId, userName);
+        }
+
+        buyer.VerifyOrAddPaymentMethod(cardTypeId,
+            $"Payment Method on {DateTime.UtcNow}",
+            message.CardNumber,
+            message.CardSecurityNumber,
+            message.CardHolderName,
+            message.CardExpiration,
+            order.Id);
+
+        var buyerUpdated = buyerOriginallyExisted ?
+            _buyerRepository.Update(buyer) :
+            _buyerRepository.Add(buyer);
+
+        result = await _buyerRepository.UnitOfWork
+            .SaveEntitiesAsync();
+        
+        if (!result)
+        {
+            return BadRequest();
+        }
+        
+        return Ok();
+    }
     [Route("cancel")]
     [HttpPut]
     [ProducesResponseType((int)HttpStatusCode.OK)]

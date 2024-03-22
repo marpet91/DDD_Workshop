@@ -1,4 +1,7 @@
-﻿namespace Basket.API.IntegrationEvents.EventHandling;
+﻿using Basket.API.IntegrationEvents.Events;
+using Microsoft.eShopOnContainers.BuildingBlocks.EventBus.Abstractions;
+
+namespace Basket.API.IntegrationEvents.EventHandling;
 
 public class OrderStartedIntegrationEventHandler : IIntegrationEventHandler<OrderStartedIntegrationEvent>
 {

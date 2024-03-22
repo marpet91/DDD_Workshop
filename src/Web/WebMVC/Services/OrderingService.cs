@@ -101,6 +101,21 @@ public class OrderingService : IOrderingService
         destination.CardSecurityNumber = original.CardSecurityNumber;
     }
 
+    public async Task CreateOrder(Order order)
+    {
+        var uri = API.Order.AddNewOrder(_remoteServiceBaseUrl);
+        var orderContent = new StringContent(JsonSerializer.Serialize(order), System.Text.Encoding.UTF8, "application/json");
+
+        var response = await _httpClient.PutAsync(uri, orderContent);
+
+        if (response.StatusCode == System.Net.HttpStatusCode.InternalServerError)
+        {
+            throw new Exception("Error in ship order process, try later.");
+        }
+
+        response.EnsureSuccessStatusCode();
+    }
+
     public Order MapUserInfoIntoOrder(ApplicationUser user, Order order)
     {
         order.City = user.City;

@@ -17,8 +17,6 @@
     <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="8.0.3" />
     <PackageReference Include="Microsoft.IdentityModel.JsonWebTokens" Version="7.3.1" />
     <PackageReference Include="Azure.Identity" Version="1.10.4"/>
-    <PackageReference Include="AspNetCore.HealthChecks.AzureServiceBus" Version="8.0.0"/>
-    <PackageReference Include="AspNetCore.HealthChecks.Rabbitmq" Version="8.0.0"/>
     <PackageReference Include="AspNetCore.HealthChecks.Redis" Version="8.0.0"/>
     <PackageReference Include="AspNetCore.HealthChecks.UI.Client" Version="8.0.0"/>
     <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="9.0.0"/>
@@ -53,8 +51,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\..\..\BuildingBlocks\EventBus\EventBusRabbitMQ\EventBusRabbitMQ.csproj"/>
-    <ProjectReference Include="..\..\..\BuildingBlocks\EventBus\EventBusServiceBus\EventBusServiceBus.csproj"/>
-    <ProjectReference Include="..\..\..\BuildingBlocks\EventBus\EventBus\EventBus.csproj"/>
+    <ProjectReference Include="..\..\..\BuildingBlocks\EventBus\EventBus\EventBus.csproj" />
   </ItemGroup>
 </Project>

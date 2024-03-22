@@ -1,4 +1,7 @@
-﻿namespace Microsoft.eShopOnContainers.Services.Basket.API.IntegrationEvents.EventHandling;
+﻿using Microsoft.eShopOnContainers.BuildingBlocks.EventBus.Abstractions;
+using Microsoft.eShopOnContainers.Services.Basket.API.IntegrationEvents.Events;
+
+namespace Microsoft.eShopOnContainers.Services.Basket.API.IntegrationEvents.EventHandling;
 
 public class ProductPriceChangedIntegrationEventHandler : IIntegrationEventHandler<ProductPriceChangedIntegrationEvent>
 {

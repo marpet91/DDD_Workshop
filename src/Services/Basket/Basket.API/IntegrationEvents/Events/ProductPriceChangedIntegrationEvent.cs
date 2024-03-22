@@ -1,4 +1,6 @@
-﻿namespace Microsoft.eShopOnContainers.Services.Basket.API.IntegrationEvents.Events;
+﻿using Microsoft.eShopOnContainers.BuildingBlocks.EventBus.Events;
+
+namespace Microsoft.eShopOnContainers.Services.Basket.API.IntegrationEvents.Events;
 
 // Integration Events notes:
 // An Event is "something that has happened in the past", therefore its name has to be

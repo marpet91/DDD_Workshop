@@ -10,4 +10,5 @@ public interface IOrderingService
     Order MapUserInfoIntoOrder(ApplicationUser user, Order order);
     BasketDTO MapOrderToBasket(Order order);
     void OverrideUserInfoIntoOrder(Order original, Order destination);
+    Task CreateOrder(Order order);
 }

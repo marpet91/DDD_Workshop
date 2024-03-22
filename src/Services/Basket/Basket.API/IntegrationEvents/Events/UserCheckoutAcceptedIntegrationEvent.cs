@@ -1,4 +1,6 @@
-﻿namespace Basket.API.IntegrationEvents.Events;
+﻿using Microsoft.eShopOnContainers.BuildingBlocks.EventBus.Events;
+
+namespace Basket.API.IntegrationEvents.Events;
 
 public record UserCheckoutAcceptedIntegrationEvent : IntegrationEvent
 {

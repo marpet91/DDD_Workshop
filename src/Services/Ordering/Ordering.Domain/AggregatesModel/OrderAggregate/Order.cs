@@ -59,8 +59,8 @@ public class Order
 
         // Add the OrderStarterDomainEvent to the domain events collection 
         // to be raised/dispatched when comitting changes into the Database [ After DbContext.SaveChanges() ]
-        AddOrderStartedDomainEvent(userId, userName, cardTypeId, cardNumber,
-                                    cardSecurityNumber, cardHolderName, cardExpiration);
+        // AddOrderStartedDomainEvent(userId, userName, cardTypeId, cardNumber,
+        //                             cardSecurityNumber, cardHolderName, cardExpiration);
     }
 
     // DDD Patterns comment
