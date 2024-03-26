@@ -10,24 +10,16 @@ using Microsoft.eShopOnContainers.Services.Ordering.API.Infrastructure.Services;
 [ApiController]
 public class OrdersController : ControllerBase
 {
-    private readonly IMediator _mediator;
-    private readonly IOrderQueries _orderQueries;
     private readonly IIdentityService _identityService;
     private readonly ILogger<OrdersController> _logger;
-    private readonly IOrderRepository _orderRepository;
-    private readonly IBuyerRepository _buyerRepository;
+    private readonly OrderingContext _orderingContext;
 
-    public OrdersController(IMediator mediator,
-        IOrderQueries orderQueries,
-        IIdentityService identityService,
-        ILogger<OrdersController> logger, IOrderRepository orderRepository, IBuyerRepository buyerRepository)
+    public OrdersController(IIdentityService identityService,
+        ILogger<OrdersController> logger, OrderingContext orderingContext)
     {
-        _mediator = mediator ?? throw new ArgumentNullException(nameof(mediator));
-        _orderQueries = orderQueries ?? throw new ArgumentNullException(nameof(orderQueries));
         _identityService = identityService ?? throw new ArgumentNullException(nameof(identityService));
         _logger = logger ?? throw new ArgumentNullException(nameof(logger));
-        _orderRepository = orderRepository;
-        _buyerRepository = buyerRepository;
+        _orderingContext = orderingContext;
     }
 
     [Route("new")]
@@ -49,10 +41,9 @@ public class OrdersController : ControllerBase
             order.AddOrderItem(item.ProductId, item.ProductName, item.UnitPrice, item.Discount, item.PictureUrl, item.Units);
         }
 
-        _orderRepository.Add(order);
+        _orderingContext.Orders.Add(order);
 
-        var result = await _orderRepository.UnitOfWork
-            .SaveEntitiesAsync();
+        var result = await _orderingContext.SaveChangesAsync() > 0;
 
         if (!result)
         {
@@ -60,16 +51,16 @@ public class OrdersController : ControllerBase
         }
 
         // Create or update the buyer details
-        var cardTypeId = (message.CardTypeId != 0) ? message.CardTypeId : 1;
-        var buyer = await _buyerRepository.FindAsync(userId);
-        bool buyerOriginallyExisted = (buyer == null) ? false : true;
+        var cardTypeId = message.CardTypeId != 0 ? message.CardTypeId : 1;
+        var buyer = await _orderingContext.Buyers.FindAsync(userId);
+        bool buyerOriginallyExisted = buyer != null;
 
         if (!buyerOriginallyExisted)
         {
             buyer = new Buyer(userId, userName);
         }
 
-        buyer.VerifyOrAddPaymentMethod(cardTypeId,
+        var paymentMethod = buyer.VerifyOrAddPaymentMethod(cardTypeId,
             $"Payment Method on {DateTime.UtcNow}",
             message.CardNumber,
             message.CardSecurityNumber,
@@ -77,12 +68,21 @@ public class OrdersController : ControllerBase
             message.CardExpiration,
             order.Id);
 
-        var buyerUpdated = buyerOriginallyExisted ?
-            _buyerRepository.Update(buyer) :
-            _buyerRepository.Add(buyer);
+        if (buyerOriginallyExisted)
+        {
+            _orderingContext.Buyers.Update(buyer);
+        }
+        else
+        {
+            _orderingContext.Buyers.Add(buyer);
+        }
+        
+        // Update order details
+        order.SetPaymentId(paymentMethod.Id);
+        order.SetBuyerId(buyer.Id);
+        _orderingContext.Orders.Update(order);
 
-        result = await _buyerRepository.UnitOfWork
-            .SaveEntitiesAsync();
+        result = await _orderingContext.SaveChangesAsync() > 0;
         
         if (!result)
         {
@@ -97,23 +97,19 @@ public class OrdersController : ControllerBase
     [ProducesResponseType((int)HttpStatusCode.BadRequest)]
     public async Task<IActionResult> CancelOrderAsync([FromBody] CancelOrderCommand command, [FromHeader(Name = "x-requestid")] string requestId)
     {
-        bool commandResult = false;
-
         if (Guid.TryParse(requestId, out Guid guid) && guid != Guid.Empty)
         {
-            var requestCancelOrder = new IdentifiedCommand<CancelOrderCommand, bool>(command, guid);
+            var orderToUpdate = await _orderingContext.Orders.FindAsync(command.OrderNumber);
+            if (orderToUpdate == null)
+            {
+                return BadRequest();
+            }
 
-            _logger.LogInformation(
-                "----- Sending command: {CommandName} - {IdProperty}: {CommandId} ({@Command})",
-                requestCancelOrder.GetGenericTypeName(),
-                nameof(requestCancelOrder.Command.OrderNumber),
-                requestCancelOrder.Command.OrderNumber,
-                requestCancelOrder);
+            orderToUpdate.SetCancelledStatus();
 
-            commandResult = await _mediator.Send(requestCancelOrder);
+            await _orderingContext.SaveChangesAsync();
         }
-
-        if (!commandResult)
+        else
         {
             return BadRequest();
         }
@@ -127,23 +123,19 @@ public class OrdersController : ControllerBase
     [ProducesResponseType((int)HttpStatusCode.BadRequest)]
     public async Task<IActionResult> ShipOrderAsync([FromBody] ShipOrderCommand command, [FromHeader(Name = "x-requestid")] string requestId)
     {
-        bool commandResult = false;
-
         if (Guid.TryParse(requestId, out Guid guid) && guid != Guid.Empty)
         {
-            var requestShipOrder = new IdentifiedCommand<ShipOrderCommand, bool>(command, guid);
+            var orderToUpdate = await _orderingContext.Orders.FindAsync(command.OrderNumber);
+            if (orderToUpdate == null)
+            {
+                return BadRequest();
+            }
 
-            _logger.LogInformation(
-                "----- Sending command: {CommandName} - {IdProperty}: {CommandId} ({@Command})",
-                requestShipOrder.GetGenericTypeName(),
-                nameof(requestShipOrder.Command.OrderNumber),
-                requestShipOrder.Command.OrderNumber,
-                requestShipOrder);
-
-            commandResult = await _mediator.Send(requestShipOrder);
+            orderToUpdate.SetShippedStatus();
+            
+            await _orderingContext.SaveChangesAsync();
         }
-
-        if (!commandResult)
+        else 
         {
             return BadRequest();
         }
@@ -159,11 +151,38 @@ public class OrdersController : ControllerBase
     {
         try
         {
-            //Todo: It's good idea to take advantage of GetOrderByIdQuery and handle by GetCustomerByIdQueryHandler
-            //var order customer = await _mediator.Send(new GetOrderByIdQuery(orderId));
-            var order = await _orderQueries.GetOrderAsync(orderId);
+            var order = await _orderingContext.Orders
+                .Include(o => o.OrderStatus)
+                .Include(o => o.OrderItems)
+                .Where(o => o.Id == orderId)
+                .SingleOrDefaultAsync();
 
-            return Ok(order);
+            if (order == null)
+            {
+                return NotFound();
+            }
+            
+            var queryOrder = new Order
+            {
+                ordernumber = order.Id,
+                description = order.Description,
+                street = order.Address.Street,
+                city = order.Address.City,
+                zipcode = order.Address.ZipCode,
+                country = order.Address.Country,
+                date = order.OrderDate,
+                status = order.OrderStatus.ToString(),
+                total = order.GetTotal(),
+                orderitems = order.OrderItems.Select(oi => new Orderitem
+                {
+                    productname = oi.GetOrderItemProductName(),
+                    pictureurl = oi.GetPictureUri(),
+                    unitprice = (double)oi.GetUnitPrice(),
+                    units = oi.GetUnits()
+                }).ToList()
+            };
+            
+            return Ok(queryOrder);
         }
         catch
         {
@@ -176,9 +195,22 @@ public class OrdersController : ControllerBase
     public async Task<ActionResult<IEnumerable<OrderSummary>>> GetOrdersAsync()
     {
         var userid = _identityService.GetUserIdentity();
-        var orders = await _orderQueries.GetOrdersFromUserAsync(Guid.Parse(userid));
+        var orders = await _orderingContext.Orders
+            .Include(o => o.OrderStatus)
+            .Include(o => o.OrderItems)
+            .Where(o => o.Buyer.IdentityGuid == userid)
+            .ToListAsync();
 
-        return Ok(orders);
+        var orderSummary = orders
+            .Select(o => new OrderSummary
+            {
+                ordernumber = o.Id,
+                date = o.OrderDate,
+                status = o.OrderStatus.ToString(),
+                total = (double)o.GetTotal()
+            });
+
+        return Ok(orderSummary);
     }
 
     [Route("cardtypes")]
@@ -186,14 +218,22 @@ public class OrdersController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<CardType>), (int)HttpStatusCode.OK)]
     public async Task<ActionResult<IEnumerable<CardType>>> GetCardTypesAsync()
     {
-        var cardTypes = await _orderQueries.GetCardTypesAsync();
+        var cardTypes = await _orderingContext.CardTypes.ToListAsync();
 
-        return Ok(cardTypes);
+        var result = cardTypes
+            .Select(c => new CardType
+            {
+                Id = c.Id,
+                Name = c.Name
+            })
+            .ToList();
+
+        return Ok(result);
     }
 
     [Route("draft")]
     [HttpPost]
-    public async Task<ActionResult<OrderDraftDTO>> CreateOrderDraftFromBasketDataAsync([FromBody] CreateOrderDraftCommand createOrderDraftCommand)
+    public ActionResult<OrderDraftDTO> CreateOrderDraftFromBasketDataAsync([FromBody] CreateOrderDraftCommand createOrderDraftCommand)
     {
         _logger.LogInformation(
             "----- Sending command: {CommandName} - {IdProperty}: {CommandId} ({@Command})",
@@ -201,7 +241,17 @@ public class OrdersController : ControllerBase
             nameof(createOrderDraftCommand.BuyerId),
             createOrderDraftCommand.BuyerId,
             createOrderDraftCommand);
+        
+        var order = Ordering.Domain.AggregatesModel.OrderAggregate.Order.NewDraft();
+        var orderItems = createOrderDraftCommand.Items.Select(i => i.ToOrderItemDTO());
+        foreach (var item in orderItems)
+        {
+            order.AddOrderItem(item.ProductId, item.ProductName, item.UnitPrice, item.Discount, item.PictureUrl, item.Units);
+        }
 
-        return await _mediator.Send(createOrderDraftCommand);
+        var result = OrderDraftDTO.FromOrder(order);
+
+        return result;
     }
+
 }

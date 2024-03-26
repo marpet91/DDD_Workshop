@@ -238,7 +238,7 @@ public class CatalogController : ControllerBase
             await _catalogContext.SaveChangesAsync();
         }
 
-        return CreatedAtAction(nameof(ItemByIdAsync), new { id = productToUpdate.Id }, null);
+        return CreatedAtAction("ItemById" , new { id = productToUpdate.Id }, null);
     }
 
     //POST api/v1/[controller]/items
@@ -261,7 +261,7 @@ public class CatalogController : ControllerBase
 
         await _catalogContext.SaveChangesAsync();
 
-        return CreatedAtAction(nameof(ItemByIdAsync), new { id = item.Id }, null);
+        return CreatedAtAction("ItemById", new { id = item.Id }, null);
     }
 
     //DELETE api/v1/[controller]/id

@@ -9,8 +9,6 @@ class PaymentMethodEntityTypeConfiguration
 
         paymentConfiguration.HasKey(b => b.Id);
 
-        paymentConfiguration.Ignore(b => b.DomainEvents);
-
         paymentConfiguration.Property(b => b.Id)
             .UseHiLo("paymentseq", OrderingContext.DEFAULT_SCHEMA);
 

@@ -1,7 +1,7 @@
 ﻿namespace Microsoft.eShopOnContainers.Services.Ordering.Domain.AggregatesModel.BuyerAggregate;
 
 public class Buyer
-    : Entity, IAggregateRoot
+    : Entity
 {
     public string IdentityGuid { get; private set; }
 
@@ -10,6 +10,8 @@ public class Buyer
     private List<PaymentMethod> _paymentMethods;
 
     public IEnumerable<PaymentMethod> PaymentMethods => _paymentMethods.AsReadOnly();
+
+    public ICollection<Order> Orders { get; } = new List<Order>();
 
     protected Buyer()
     {
@@ -32,16 +34,12 @@ public class Buyer
 
         if (existingPayment != null)
         {
-            AddDomainEvent(new BuyerAndPaymentMethodVerifiedDomainEvent(this, existingPayment, orderId));
-
             return existingPayment;
         }
 
         var payment = new PaymentMethod(cardTypeId, alias, cardNumber, securityNumber, cardHolderName, expiration);
 
         _paymentMethods.Add(payment);
-
-        AddDomainEvent(new BuyerAndPaymentMethodVerifiedDomainEvent(this, payment, orderId));
 
         return payment;
     }

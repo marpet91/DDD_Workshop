@@ -1,9 +1,7 @@
-﻿using Microsoft.eShopOnContainers.Services.Ordering.Domain.Events;
-
-namespace Microsoft.eShopOnContainers.Services.Ordering.Domain.AggregatesModel.OrderAggregate;
+﻿namespace Microsoft.eShopOnContainers.Services.Ordering.Domain.AggregatesModel.OrderAggregate;
 
 public class Order
-    : Entity, IAggregateRoot
+    : Entity
 {
     // DDD Patterns comment
     // Using private fields, allowed since EF Core 1.1, is a much better encapsulation
@@ -12,6 +10,8 @@ public class Order
 
     // Address is a Value Object pattern example persisted as EF Core 2.0 owned entity
     public Address Address { get; private set; }
+    
+    public Buyer Buyer { get; set; }
 
     public int? GetBuyerId => _buyerId;
     private int? _buyerId;
@@ -32,6 +32,18 @@ public class Order
     // but only through the method OrderAggrergateRoot.AddOrderItem() which includes behaviour.
     private readonly List<OrderItem> _orderItems;
     public IReadOnlyCollection<OrderItem> OrderItems => _orderItems;
+
+    public string Description
+    {
+        get => _description;
+        set => _description = value;
+    }
+
+    public DateTime OrderDate
+    {
+        get => _orderDate;
+        set => _orderDate = value;
+    }
 
     private int? _paymentMethodId;
 
@@ -101,38 +113,7 @@ public class Order
     {
         _buyerId = id;
     }
-
-    public void SetAwaitingValidationStatus()
-    {
-        if (_orderStatusId == OrderStatus.Submitted.Id)
-        {
-            AddDomainEvent(new OrderStatusChangedToAwaitingValidationDomainEvent(Id, _orderItems));
-            _orderStatusId = OrderStatus.AwaitingValidation.Id;
-        }
-    }
-
-    public void SetStockConfirmedStatus()
-    {
-        if (_orderStatusId == OrderStatus.AwaitingValidation.Id)
-        {
-            AddDomainEvent(new OrderStatusChangedToStockConfirmedDomainEvent(Id));
-
-            _orderStatusId = OrderStatus.StockConfirmed.Id;
-            _description = "All the items were confirmed with available stock.";
-        }
-    }
-
-    public void SetPaidStatus()
-    {
-        if (_orderStatusId == OrderStatus.StockConfirmed.Id)
-        {
-            AddDomainEvent(new OrderStatusChangedToPaidDomainEvent(Id, OrderItems));
-
-            _orderStatusId = OrderStatus.Paid.Id;
-            _description = "The payment was performed at a simulated \"American Bank checking bank account ending on XX35071\"";
-        }
-    }
-
+    
     public void SetShippedStatus()
     {
         if (_orderStatusId != OrderStatus.Paid.Id)
@@ -142,7 +123,6 @@ public class Order
 
         _orderStatusId = OrderStatus.Shipped.Id;
         _description = "The order was shipped.";
-        AddDomainEvent(new OrderShippedDomainEvent(this));
     }
 
     public void SetCancelledStatus()
@@ -155,32 +135,6 @@ public class Order
 
         _orderStatusId = OrderStatus.Cancelled.Id;
         _description = $"The order was cancelled.";
-        AddDomainEvent(new OrderCancelledDomainEvent(this));
-    }
-
-    public void SetCancelledStatusWhenStockIsRejected(IEnumerable<int> orderStockRejectedItems)
-    {
-        if (_orderStatusId == OrderStatus.AwaitingValidation.Id)
-        {
-            _orderStatusId = OrderStatus.Cancelled.Id;
-
-            var itemsStockRejectedProductNames = OrderItems
-                .Where(c => orderStockRejectedItems.Contains(c.ProductId))
-                .Select(c => c.GetOrderItemProductName());
-
-            var itemsStockRejectedDescription = string.Join(", ", itemsStockRejectedProductNames);
-            _description = $"The product items don't have stock: ({itemsStockRejectedDescription}).";
-        }
-    }
-
-    private void AddOrderStartedDomainEvent(string userId, string userName, int cardTypeId, string cardNumber,
-            string cardSecurityNumber, string cardHolderName, DateTime cardExpiration)
-    {
-        var orderStartedDomainEvent = new OrderStartedDomainEvent(this, userId, userName, cardTypeId,
-                                                                    cardNumber, cardSecurityNumber,
-                                                                    cardHolderName, cardExpiration);
-
-        this.AddDomainEvent(orderStartedDomainEvent);
     }
 
     private void StatusChangeException(OrderStatus orderStatusToChange)

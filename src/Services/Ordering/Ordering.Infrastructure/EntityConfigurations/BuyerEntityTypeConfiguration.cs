@@ -9,8 +9,6 @@ class BuyerEntityTypeConfiguration
 
         buyerConfiguration.HasKey(b => b.Id);
 
-        buyerConfiguration.Ignore(b => b.DomainEvents);
-
         buyerConfiguration.Property(b => b.Id)
             .UseHiLo("buyerseq", OrderingContext.DEFAULT_SCHEMA);
 
@@ -31,5 +29,9 @@ class BuyerEntityTypeConfiguration
         var navigation = buyerConfiguration.Metadata.FindNavigation(nameof(Buyer.PaymentMethods));
 
         navigation.SetPropertyAccessMode(PropertyAccessMode.Field);
+
+        buyerConfiguration.HasMany(b => b.Orders)
+            .WithOne()
+            .HasForeignKey("BuyerId");
     }
 }

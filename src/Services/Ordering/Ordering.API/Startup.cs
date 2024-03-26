@@ -34,10 +34,7 @@ public class Startup
 
         var container = new ContainerBuilder();
         container.Populate(services);
-
-        container.RegisterModule(new MediatorModule());
-        container.RegisterModule(new ApplicationModule(Configuration["ConnectionString"]));
-
+        
         return new AutofacServiceProvider(container.Build());
     }
 
@@ -96,22 +93,8 @@ public class Startup
             });
         });
 
-        ConfigureEventBus(app);
     }
-
-
-    private void ConfigureEventBus(IApplicationBuilder app)
-    {
-        var eventBus = app.ApplicationServices.GetRequiredService<BuildingBlocks.EventBus.Abstractions.IEventBus>();
-
-        eventBus.Subscribe<UserCheckoutAcceptedIntegrationEvent, IIntegrationEventHandler<UserCheckoutAcceptedIntegrationEvent>>();
-        eventBus.Subscribe<GracePeriodConfirmedIntegrationEvent, IIntegrationEventHandler<GracePeriodConfirmedIntegrationEvent>>();
-        eventBus.Subscribe<OrderStockConfirmedIntegrationEvent, IIntegrationEventHandler<OrderStockConfirmedIntegrationEvent>>();
-        eventBus.Subscribe<OrderStockRejectedIntegrationEvent, IIntegrationEventHandler<OrderStockRejectedIntegrationEvent>>();
-        eventBus.Subscribe<OrderPaymentFailedIntegrationEvent, IIntegrationEventHandler<OrderPaymentFailedIntegrationEvent>>();
-        eventBus.Subscribe<OrderPaymentSucceededIntegrationEvent, IIntegrationEventHandler<OrderPaymentSucceededIntegrationEvent>>();
-    }
-
+    
     protected virtual void ConfigureAuth(IApplicationBuilder app)
     {
         app.UseAuthentication();
@@ -253,9 +236,7 @@ static class CustomExtensionsMethods
         services.AddTransient<IIdentityService, IdentityService>();
         services.AddTransient<Func<DbConnection, IIntegrationEventLogService>>(
             sp => (DbConnection c) => new IntegrationEventLogService(c));
-
-        services.AddTransient<IOrderingIntegrationEventService, OrderingIntegrationEventService>();
-
+        
         if (configuration.GetValue<bool>("AzureServiceBusEnabled"))
         {
             services.AddSingleton<IServiceBusPersisterConnection>(sp =>
