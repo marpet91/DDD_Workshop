@@ -1,5 +1,4 @@
-﻿global using ApiDto = Microsoft.eShopOnContainers.Services.Ordering.API.Application.Models;
-global using AppDto = Microsoft.eShopOnContainers.Services.Ordering.API.Application.Commands;
+﻿global using ApiDto = Microsoft.eShopOnContainers.Services.Ordering.API.DTOs;
 global using Autofac.Extensions.DependencyInjection;
 global using Autofac;
 global using Azure.Core;
@@ -22,7 +21,7 @@ global using Microsoft.AspNetCore;
 global using Azure.Messaging.ServiceBus;
 global using Microsoft.EntityFrameworkCore.Design;
 global using Microsoft.EntityFrameworkCore;
-global using Microsoft.eShopOnContainers.Services.Ordering.API.Application.Models;
+global using Microsoft.eShopOnContainers.Services.Ordering.API.DTOs;
 global using Microsoft.eShopOnContainers.Services.Ordering.API.Controllers;
 global using Microsoft.eShopOnContainers.Services.Ordering.API.Extensions;
 global using GrpcOrdering;

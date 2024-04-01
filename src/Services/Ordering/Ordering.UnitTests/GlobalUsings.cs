@@ -1,7 +1,6 @@
 ﻿global using System;
-global using Microsoft.eShopOnContainers.Services.Ordering.API.Application.Models;
+global using Microsoft.eShopOnContainers.Services.Ordering.API.DTOs;
 global using MediatR;
-global using Microsoft.eShopOnContainers.Services.Ordering.API.Application.Commands;
 global using Microsoft.eShopOnContainers.Services.Ordering.Infrastructure.Idempotency;
 global using Microsoft.Extensions.Logging;
 global using Moq;
@@ -13,7 +12,6 @@ global using Microsoft.eShopOnContainers.Services.Ordering.Domain.AggregatesMode
 global using Microsoft.eShopOnContainers.Services.Ordering.Domain.AggregatesModel.OrderAggregate;
 global using System.Threading;
 global using Microsoft.AspNetCore.Mvc;
-global using Microsoft.eShopOnContainers.Services.Ordering.API.Application.Queries;
 global using Microsoft.eShopOnContainers.Services.Ordering.API.Controllers;
 global using System.Linq;
 global using Microsoft.eShopOnContainers.Services.Ordering.Domain.SeedWork;

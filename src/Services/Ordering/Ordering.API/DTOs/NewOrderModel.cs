@@ -1,6 +1,6 @@
-﻿namespace Microsoft.eShopOnContainers.Services.Ordering.API.Application.Models;
+﻿namespace Microsoft.eShopOnContainers.Services.Ordering.API.DTOs;
 
-public record NewOrder
+public record NewOrderModel
 {        
     public string City { get; set; }
         
@@ -28,4 +28,18 @@ public record NewOrder
 
     public List<OrderItem> OrderItems { get; set; }
 
+    public record OrderItem
+    {
+        public int ProductId { get; init; }
+
+        public string ProductName { get; init; }
+
+        public decimal UnitPrice { get; init; }
+
+        public decimal Discount { get; init; }
+
+        public int Units { get; init; }
+
+        public string PictureUrl { get; init; }
+    }
 }

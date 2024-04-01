@@ -1,7 +1,6 @@
 ﻿namespace Microsoft.eShopOnContainers.Services.Ordering.API.Controllers;
 
-using Application.Commands;
-using Application.Queries;
+using ApiDto;
 using Microsoft.eShopOnContainers.Services.Ordering.API.Infrastructure.Services;
 
 [Route("api/v1/[controller]")]
@@ -22,7 +21,7 @@ public class OrdersController : ControllerBase
     [HttpPut]
     [ProducesResponseType((int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.BadRequest)]
-    public async Task<IActionResult> NewOrderAsync([FromBody] NewOrder message, [FromHeader(Name = "x-requestid")] string requestId)
+    public async Task<IActionResult> NewOrderAsync([FromBody] NewOrderModel model, [FromHeader(Name = "x-requestid")] string requestId)
     {
         // Get the user info
         var userId = HttpContext.User.FindFirst("sub").Value;
@@ -31,20 +30,20 @@ public class OrdersController : ControllerBase
         // Create the order
         var address = new Address
         {
-            Street = message.Street,
-            City = message.City,
-            State = message.State,
-            Country = message.Country,
-            ZipCode = message.ZipCode
+            Street = model.Street,
+            City = model.City,
+            State = model.State,
+            Country = model.Country,
+            ZipCode = model.ZipCode
         };
-        var order = new Domain.AggregatesModel.OrderAggregate.Order
+        var order = new Order
         {
             OrderStatusId = OrderStatus.Submitted.Id,
             OrderDate = DateTime.UtcNow,
             Address = address,
         };
 
-        foreach (var item in message.OrderItems)
+        foreach (var item in model.OrderItems)
         {
             OrderManager.AddOrderItem(order, item.ProductId, item.ProductName, item.UnitPrice, item.Discount, item.PictureUrl, item.Units);
         }
@@ -54,7 +53,7 @@ public class OrdersController : ControllerBase
         await _orderingContext.SaveChangesAsync();
         
         // Create or update the buyer details
-        var cardTypeId = message.CardTypeId != 0 ? message.CardTypeId : 1;
+        var cardTypeId = model.CardTypeId != 0 ? model.CardTypeId : 1;
         var buyer = await _orderingContext.Buyers
             .Where(b => b.IdentityGuid == userId)
             .Include(b => b.PaymentMethods)
@@ -75,8 +74,8 @@ public class OrdersController : ControllerBase
         PaymentMethod paymentMethod;
         var existingPayment = buyer.PaymentMethods
             .SingleOrDefault(p => p.CardTypeId == cardTypeId
-                                  && p.CardNumber == message.CardNumber
-                                  && p.Expiration == message.CardExpiration);
+                                  && p.CardNumber == model.CardNumber
+                                  && p.Expiration == model.CardExpiration);
 
         if (existingPayment != null)
         {
@@ -86,11 +85,11 @@ public class OrdersController : ControllerBase
         {
             var payment = new PaymentMethod
             {
-                CardNumber = message.CardNumber,
-                SecurityNumber = message.CardSecurityNumber,
-                CardHolderName = message.CardHolderName,
+                CardNumber = model.CardNumber,
+                SecurityNumber = model.CardSecurityNumber,
+                CardHolderName = model.CardHolderName,
                 Alias = alias,
-                Expiration = message.CardExpiration,
+                Expiration = model.CardExpiration,
                 CardTypeId = cardTypeId
             };
 
@@ -124,11 +123,11 @@ public class OrdersController : ControllerBase
     [HttpPut]
     [ProducesResponseType((int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.BadRequest)]
-    public async Task<IActionResult> CancelOrderAsync([FromBody] CancelOrderCommand command, [FromHeader(Name = "x-requestid")] string requestId)
+    public async Task<IActionResult> CancelOrderAsync([FromBody] CancelOrderModel model, [FromHeader(Name = "x-requestid")] string requestId)
     {
         if (Guid.TryParse(requestId, out Guid guid) && guid != Guid.Empty)
         {
-            var orderToUpdate = await _orderingContext.Orders.FindAsync(command.OrderNumber);
+            var orderToUpdate = await _orderingContext.Orders.FindAsync(model.OrderNumber);
             if (orderToUpdate == null)
             {
                 return BadRequest();
@@ -151,11 +150,11 @@ public class OrdersController : ControllerBase
     [HttpPut]
     [ProducesResponseType((int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.BadRequest)]
-    public async Task<IActionResult> ShipOrderAsync([FromBody] ShipOrderCommand command, [FromHeader(Name = "x-requestid")] string requestId)
+    public async Task<IActionResult> ShipOrderAsync([FromBody] ShipOrderModel model, [FromHeader(Name = "x-requestid")] string requestId)
     {
         if (Guid.TryParse(requestId, out Guid guid) && guid != Guid.Empty)
         {
-            var orderToUpdate = await _orderingContext.Orders.FindAsync(command.OrderNumber);
+            var orderToUpdate = await _orderingContext.Orders.FindAsync(model.OrderNumber);
             if (orderToUpdate == null)
             {
                 return BadRequest();
@@ -203,13 +202,13 @@ public class OrdersController : ControllerBase
                 Country = order.Address.Country,
                 Date = order.OrderDate,
                 Status = order.OrderStatus.ToString(),
-                Total = Domain.AggregatesModel.OrderAggregate.OrderManager.GetTotal(order),
-                OrderItems = order.OrderItems.Select(oi => new OrderItemDto
+                Total = OrderManager.GetTotal(order),
+                OrderItems = order.OrderItems.Select(orderItem => new OrderItemDto
                 {
-                    ProductName = oi.ProductName,
-                    PictureUrl = oi.PictureUrl,
-                    UnitPrice = (double)oi.UnitPrice,
-                    Units = oi.Units
+                    ProductName = orderItem.ProductName,
+                    PictureUrl = orderItem.PictureUrl,
+                    UnitPrice = orderItem.UnitPrice,
+                    Units = orderItem.Units
                 }).ToList()
             };
             
@@ -238,7 +237,7 @@ public class OrdersController : ControllerBase
                 OrderNumber = o.Id,
                 Date = o.OrderDate,
                 Status = o.OrderStatus.ToString(),
-                Total = (double)Domain.AggregatesModel.OrderAggregate.OrderManager.GetTotal(o)
+                Total = OrderManager.GetTotal(o)
             });
 
         return Ok(orderSummary);
@@ -264,16 +263,16 @@ public class OrdersController : ControllerBase
 
     [Route("draft")]
     [HttpPost]
-    public ActionResult<OrderDraftDTO> CreateOrderDraftFromBasketDataAsync([FromBody] CreateOrderDraftCommand createOrderDraftCommand)
+    public ActionResult<OrderDraftModel> CreateOrderDraftFromBasketDataAsync([FromBody] CreateOrderDraftModel createOrderDraftModel)
     {
         var order = new Order();
-        var orderItems = createOrderDraftCommand.Items.Select(i => i.ToOrderItemDTO());
+        var orderItems = createOrderDraftModel.Items.Select(i => i.ToOrderItemDTO());
         foreach (var item in orderItems)
         {
             OrderManager.AddOrderItem(order, item.ProductId, item.ProductName, item.UnitPrice, item.Discount, item.PictureUrl, item.Units);
         }
 
-        var result = OrderDraftDTO.FromOrder(order);
+        var result = OrderDraftModel.FromOrder(order);
 
         return result;
     }

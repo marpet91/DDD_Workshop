@@ -1,10 +1,10 @@
-﻿namespace Microsoft.eShopOnContainers.Services.Ordering.API.Application.Queries;
+﻿namespace Microsoft.eShopOnContainers.Services.Ordering.API.DTOs;
 
 public record OrderItemDto
 {
     public string ProductName { get; set; }
     public int Units { get; set; }
-    public double UnitPrice { get; set; }
+    public decimal UnitPrice { get; set; }
     public string PictureUrl { get; set; }
 }
 
@@ -27,7 +27,7 @@ public record OrderSummaryDto
     public int OrderNumber { get; set; }
     public DateTime Date { get; set; }
     public string Status { get; set; }
-    public double Total { get; set; }
+    public decimal Total { get; set; }
 }
 
 public record CardTypeDto

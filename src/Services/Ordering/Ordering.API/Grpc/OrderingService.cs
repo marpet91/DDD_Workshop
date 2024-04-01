@@ -1,6 +1,4 @@
-﻿using Order = Microsoft.eShopOnContainers.Services.Ordering.Domain.AggregatesModel.OrderAggregate.Order;
-
-namespace GrpcOrdering;
+﻿namespace GrpcOrdering;
 
 public class OrderingService : OrderingGrpc.OrderingGrpcBase
 {
@@ -11,39 +9,38 @@ public class OrderingService : OrderingGrpc.OrderingGrpcBase
         _logger = logger;
     }
 
-    public override async Task<OrderDraftDTO> CreateOrderDraftFromBasketData(CreateOrderDraftCommand createOrderDraftCommand, ServerCallContext context)
+    public override Task<OrderDraftDTO> CreateOrderDraftFromBasketData(CreateOrderDraftCommand createOrderDraftCommand, ServerCallContext context)
     {
         _logger.LogInformation("Begin grpc call from method {Method} for ordering get order draft {CreateOrderDraftCommand}", context.Method, createOrderDraftCommand);
 
-        var command = new AppDto.CreateOrderDraftCommand(
-                        createOrderDraftCommand.BuyerId,
-                        this.MapBasketItems(createOrderDraftCommand.Items));
-
+        var model = new CreateOrderDraftModel
+        {
+            BuyerId = createOrderDraftCommand.BuyerId,
+            Items = MapBasketItems(createOrderDraftCommand.Items)
+        };
 
         var order = new Order();
-        var orderItems = command.Items.Select(i => i.ToOrderItemDTO());
+        var orderItems = model.Items.Select(i => i.ToOrderItemDTO());
         foreach (var item in orderItems)
         {
             OrderManager.AddOrderItem(order, item.ProductId, item.ProductName, item.UnitPrice, item.Discount, item.PictureUrl, item.Units);
         }
 
-        var data = AppDto.OrderDraftDTO.FromOrder(order);
+        var data = OrderDraftModel.FromOrder(order);
 
         if (data != null)
         {
             context.Status = new Status(StatusCode.OK, $" ordering get order draft {createOrderDraftCommand} do exist");
 
-            return this.MapResponse(data);
-        }
-        else
-        {
-            context.Status = new Status(StatusCode.NotFound, $" ordering get order draft {createOrderDraftCommand} do not exist");
+            return Task.FromResult(MapResponse(data));
         }
 
-        return new OrderDraftDTO();
+        context.Status = new Status(StatusCode.NotFound, $" ordering get order draft {createOrderDraftCommand} do not exist");
+
+        return Task.FromResult(new OrderDraftDTO());
     }
 
-    public OrderDraftDTO MapResponse(AppDto.OrderDraftDTO order)
+    public OrderDraftDTO MapResponse(OrderDraftModel order)
     {
         var result = new OrderDraftDTO()
         {
