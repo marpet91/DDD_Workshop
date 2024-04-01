@@ -12,8 +12,6 @@ public class Order
     public OrderStatus OrderStatus { get; set; }
     public int OrderStatusId { get; set; }
 
-    public bool IsDraft { get; set; }
-
     public ICollection<OrderItem> OrderItems { get; } = new List<OrderItem>();
 
     public string Description { get; set; }

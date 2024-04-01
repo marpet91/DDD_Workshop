@@ -2,12 +2,6 @@ namespace Microsoft.eShopOnContainers.Services.Ordering.Domain.AggregatesModel.O
 
 public static class OrderManager
 {
-    public static Order NewDraft() =>
-        new()
-        {
-            IsDraft = true
-        };
-
     public static void AddOrderItem(Order order, int productId, string productName, decimal unitPrice, decimal discount,
         string pictureUrl, int units = 1)
     {

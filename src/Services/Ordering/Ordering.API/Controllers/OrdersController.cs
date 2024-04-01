@@ -40,7 +40,6 @@ public class OrdersController : ControllerBase
         var order = new Domain.AggregatesModel.OrderAggregate.Order
         {
             OrderStatusId = OrderStatus.Submitted.Id,
-            IsDraft = true,
             OrderDate = DateTime.UtcNow,
             Address = address,
         };
@@ -177,7 +176,7 @@ public class OrdersController : ControllerBase
 
     [Route("{orderId:int}")]
     [HttpGet]
-    [ProducesResponseType(typeof(Order), (int)HttpStatusCode.OK)]
+    [ProducesResponseType(typeof(OrderDto), (int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.NotFound)]
     public async Task<ActionResult> GetOrderAsync(int orderId)
     {
@@ -194,23 +193,23 @@ public class OrdersController : ControllerBase
                 return NotFound();
             }
             
-            var queryOrder = new Order
+            var queryOrder = new OrderDto
             {
-                ordernumber = order.Id,
-                description = order.Description,
-                street = order.Address.Street,
-                city = order.Address.City,
-                zipcode = order.Address.ZipCode,
-                country = order.Address.Country,
-                date = order.OrderDate,
-                status = order.OrderStatus.ToString(),
-                total = Domain.AggregatesModel.OrderAggregate.OrderManager.GetTotal(order),
-                orderitems = order.OrderItems.Select(oi => new Orderitem
+                OrderNumber = order.Id,
+                Description = order.Description,
+                Street = order.Address.Street,
+                City = order.Address.City,
+                ZipCode = order.Address.ZipCode,
+                Country = order.Address.Country,
+                Date = order.OrderDate,
+                Status = order.OrderStatus.ToString(),
+                Total = Domain.AggregatesModel.OrderAggregate.OrderManager.GetTotal(order),
+                OrderItems = order.OrderItems.Select(oi => new OrderItemDto
                 {
-                    productname = oi.ProductName,
-                    pictureurl = oi.PictureUrl,
-                    unitprice = (double)oi.UnitPrice,
-                    units = oi.Units
+                    ProductName = oi.ProductName,
+                    PictureUrl = oi.PictureUrl,
+                    UnitPrice = (double)oi.UnitPrice,
+                    Units = oi.Units
                 }).ToList()
             };
             
@@ -223,8 +222,8 @@ public class OrdersController : ControllerBase
     }
 
     [HttpGet]
-    [ProducesResponseType(typeof(IEnumerable<OrderSummary>), (int)HttpStatusCode.OK)]
-    public async Task<ActionResult<IEnumerable<OrderSummary>>> GetOrdersAsync()
+    [ProducesResponseType(typeof(IEnumerable<OrderSummaryDto>), (int)HttpStatusCode.OK)]
+    public async Task<ActionResult<IEnumerable<OrderSummaryDto>>> GetOrdersAsync()
     {
         var userid = _identityService.GetUserIdentity();
         var orders = await _orderingContext.Orders
@@ -234,12 +233,12 @@ public class OrdersController : ControllerBase
             .ToListAsync();
 
         var orderSummary = orders
-            .Select(o => new OrderSummary
+            .Select(o => new OrderSummaryDto
             {
-                ordernumber = o.Id,
-                date = o.OrderDate,
-                status = o.OrderStatus.ToString(),
-                total = (double)Domain.AggregatesModel.OrderAggregate.OrderManager.GetTotal(o)
+                OrderNumber = o.Id,
+                Date = o.OrderDate,
+                Status = o.OrderStatus.ToString(),
+                Total = (double)Domain.AggregatesModel.OrderAggregate.OrderManager.GetTotal(o)
             });
 
         return Ok(orderSummary);
@@ -247,13 +246,13 @@ public class OrdersController : ControllerBase
 
     [Route("cardtypes")]
     [HttpGet]
-    [ProducesResponseType(typeof(IEnumerable<CardType>), (int)HttpStatusCode.OK)]
-    public async Task<ActionResult<IEnumerable<CardType>>> GetCardTypesAsync()
+    [ProducesResponseType(typeof(IEnumerable<CardTypeDto>), (int)HttpStatusCode.OK)]
+    public async Task<ActionResult<IEnumerable<CardTypeDto>>> GetCardTypesAsync()
     {
         var cardTypes = await _orderingContext.CardTypes.ToListAsync();
 
         var result = cardTypes
-            .Select(c => new CardType
+            .Select(c => new CardTypeDto
             {
                 Id = c.Id,
                 Name = c.Name
@@ -267,7 +266,7 @@ public class OrdersController : ControllerBase
     [HttpPost]
     public ActionResult<OrderDraftDTO> CreateOrderDraftFromBasketDataAsync([FromBody] CreateOrderDraftCommand createOrderDraftCommand)
     {
-        var order = Ordering.Domain.AggregatesModel.OrderAggregate.OrderManager.NewDraft();
+        var order = new Order();
         var orderItems = createOrderDraftCommand.Items.Select(i => i.ToOrderItemDTO());
         foreach (var item in orderItems)
         {

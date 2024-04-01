@@ -15,19 +15,19 @@ public class OrderingService : OrderingGrpc.OrderingGrpcBase
     {
         _logger.LogInformation("Begin grpc call from method {Method} for ordering get order draft {CreateOrderDraftCommand}", context.Method, createOrderDraftCommand);
 
-        var command = new AppCommand.CreateOrderDraftCommand(
+        var command = new AppDto.CreateOrderDraftCommand(
                         createOrderDraftCommand.BuyerId,
                         this.MapBasketItems(createOrderDraftCommand.Items));
 
 
-        var order = Microsoft.eShopOnContainers.Services.Ordering.Domain.AggregatesModel.OrderAggregate.OrderManager.NewDraft();
+        var order = new Order();
         var orderItems = command.Items.Select(i => i.ToOrderItemDTO());
         foreach (var item in orderItems)
         {
             OrderManager.AddOrderItem(order, item.ProductId, item.ProductName, item.UnitPrice, item.Discount, item.PictureUrl, item.Units);
         }
 
-        var data = AppCommand.OrderDraftDTO.FromOrder(order);
+        var data = AppDto.OrderDraftDTO.FromOrder(order);
 
         if (data != null)
         {
@@ -43,7 +43,7 @@ public class OrderingService : OrderingGrpc.OrderingGrpcBase
         return new OrderDraftDTO();
     }
 
-    public OrderDraftDTO MapResponse(AppCommand.OrderDraftDTO order)
+    public OrderDraftDTO MapResponse(AppDto.OrderDraftDTO order)
     {
         var result = new OrderDraftDTO()
         {
@@ -63,9 +63,9 @@ public class OrderingService : OrderingGrpc.OrderingGrpcBase
         return result;
     }
 
-    public IEnumerable<ApiModels.BasketItem> MapBasketItems(RepeatedField<BasketItem> items)
+    public IEnumerable<ApiDto.BasketItem> MapBasketItems(RepeatedField<BasketItem> items)
     {
-        return items.Select(x => new ApiModels.BasketItem()
+        return items.Select(x => new ApiDto.BasketItem()
         {
             Id = x.Id,
             ProductId = x.ProductId,

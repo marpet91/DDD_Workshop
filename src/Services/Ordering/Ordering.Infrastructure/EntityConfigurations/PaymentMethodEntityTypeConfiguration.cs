@@ -35,5 +35,7 @@ class PaymentMethodEntityTypeConfiguration
         paymentConfiguration
             .HasOne(p => p.CardType)
             .WithMany();
+
+        paymentConfiguration.Ignore(p => p.SecurityNumber);
     }
 }

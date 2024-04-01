@@ -1,37 +1,37 @@
 ﻿namespace Microsoft.eShopOnContainers.Services.Ordering.API.Application.Queries;
 
-public record Orderitem
+public record OrderItemDto
 {
-    public string productname { get; init; }
-    public int units { get; init; }
-    public double unitprice { get; init; }
-    public string pictureurl { get; init; }
+    public string ProductName { get; set; }
+    public int Units { get; set; }
+    public double UnitPrice { get; set; }
+    public string PictureUrl { get; set; }
 }
 
-public record Order
+public record OrderDto
 {
-    public int ordernumber { get; init; }
-    public DateTime date { get; init; }
-    public string status { get; init; }
-    public string description { get; init; }
-    public string street { get; init; }
-    public string city { get; init; }
-    public string zipcode { get; init; }
-    public string country { get; init; }
-    public List<Orderitem> orderitems { get; set; }
-    public decimal total { get; set; }
+    public int OrderNumber { get; set; }
+    public DateTime Date { get; set; }
+    public string Status { get; set; }
+    public string Description { get; set; }
+    public string Street { get; set; }
+    public string City { get; set; }
+    public string ZipCode { get; set; }
+    public string Country { get; set; }
+    public List<OrderItemDto> OrderItems { get; set; }
+    public decimal Total { get; set; }
 }
 
-public record OrderSummary
+public record OrderSummaryDto
 {
-    public int ordernumber { get; init; }
-    public DateTime date { get; init; }
-    public string status { get; init; }
-    public double total { get; init; }
+    public int OrderNumber { get; set; }
+    public DateTime Date { get; set; }
+    public string Status { get; set; }
+    public double Total { get; set; }
 }
 
-public record CardType
+public record CardTypeDto
 {
-    public int Id { get; init; }
-    public string Name { get; init; }
+    public int Id { get; set; }
+    public string Name { get; set; }
 }
