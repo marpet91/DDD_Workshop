@@ -50,6 +50,7 @@ public class Startup
         {
             config.ResourcesPath = string.IsNullOrEmpty(pathBase) ? "/ui/resources" : $"{pathBase}/ui/resources";
             config.UIPath = "/hc-ui";
+            config.AddCustomStylesheet("wwwroot/css/custom.css");
         });
 
         app.UseStaticFiles();

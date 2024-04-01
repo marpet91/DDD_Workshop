@@ -5,6 +5,7 @@
     <DockerComposeProjectPath>..\..\..\..\docker-compose.dcproj</DockerComposeProjectPath>
     <GenerateErrorForMissingTargetingPacks>false</GenerateErrorForMissingTargetingPacks>
     <IsTransformWebConfigDisabled>true</IsTransformWebConfigDisabled>    
+    <RootNamespace>Microsoft.eShopOnContainers.Services.Ordering.SignalrHub</RootNamespace>    
   </PropertyGroup>
 
 	<ItemGroup>

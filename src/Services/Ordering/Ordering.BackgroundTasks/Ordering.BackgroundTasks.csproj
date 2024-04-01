@@ -5,6 +5,7 @@
     <UserSecretsId>dotnet-Ordering.BackgroundTasks-9D3E1DD6-405B-447F-8AAB-1708B36D260E</UserSecretsId>
     <GenerateErrorForMissingTargetingPacks>false</GenerateErrorForMissingTargetingPacks>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>    
+    <RootNamespace>Microsoft.eShopOnContainers.Services.Ordering.BackgroundTasks</RootNamespace>    
   </PropertyGroup>
 
   <ItemGroup>

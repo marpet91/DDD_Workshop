@@ -7,6 +7,7 @@
     <AssetTargetFallback>$(AssetTargetFallback);portable-net45+win8+wp8+wpa81;</AssetTargetFallback>
     <GenerateErrorForMissingTargetingPacks>false</GenerateErrorForMissingTargetingPacks>
     <IsTransformWebConfigDisabled>true</IsTransformWebConfigDisabled>    
+    <RootNamespace>Microsoft.eShopOnContainers.Services.Webhooks.API</RootNamespace>    
   </PropertyGroup>
 
   <ItemGroup>
