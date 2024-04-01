@@ -1,6 +1,5 @@
 ﻿namespace Microsoft.eShopOnContainers.Services.Ordering.API.Controllers;
 
-using Microsoft.eShopOnContainers.BuildingBlocks.EventBus.Extensions;
 using Application.Commands;
 using Application.Queries;
 using Microsoft.eShopOnContainers.Services.Ordering.API.Infrastructure.Services;
@@ -11,14 +10,11 @@ using Microsoft.eShopOnContainers.Services.Ordering.API.Infrastructure.Services;
 public class OrdersController : ControllerBase
 {
     private readonly IIdentityService _identityService;
-    private readonly ILogger<OrdersController> _logger;
     private readonly OrderingContext _orderingContext;
 
-    public OrdersController(IIdentityService identityService,
-        ILogger<OrdersController> logger, OrderingContext orderingContext)
+    public OrdersController(IIdentityService identityService, OrderingContext orderingContext)
     {
         _identityService = identityService ?? throw new ArgumentNullException(nameof(identityService));
-        _logger = logger ?? throw new ArgumentNullException(nameof(logger));
         _orderingContext = orderingContext;
     }
 
@@ -31,42 +27,78 @@ public class OrdersController : ControllerBase
         // Get the user info
         var userId = HttpContext.User.FindFirst("sub").Value;
         var userName = HttpContext.User.FindFirst("name").Value;
-
+        
         // Create the order
-        var address = new Address(message.Street, message.City, message.State, message.Country, message.ZipCode);
-        var order = new Domain.AggregatesModel.OrderAggregate.Order(userId, userName, address, message.CardTypeId, message.CardNumber, message.CardSecurityNumber, message.CardHolderName, message.CardExpiration);
+        var address = new Address
+        {
+            Street = message.Street,
+            City = message.City,
+            State = message.State,
+            Country = message.Country,
+            ZipCode = message.ZipCode
+        };
+        var order = new Domain.AggregatesModel.OrderAggregate.Order
+        {
+            OrderStatusId = OrderStatus.Submitted.Id,
+            IsDraft = true,
+            OrderDate = DateTime.UtcNow,
+            Address = address,
+        };
 
         foreach (var item in message.OrderItems)
         {
-            order.AddOrderItem(item.ProductId, item.ProductName, item.UnitPrice, item.Discount, item.PictureUrl, item.Units);
+            OrderManager.AddOrderItem(order, item.ProductId, item.ProductName, item.UnitPrice, item.Discount, item.PictureUrl, item.Units);
         }
 
         _orderingContext.Orders.Add(order);
-
-        var result = await _orderingContext.SaveChangesAsync() > 0;
-
-        if (!result)
-        {
-            return BadRequest();
-        }
-
+        
+        await _orderingContext.SaveChangesAsync();
+        
         // Create or update the buyer details
         var cardTypeId = message.CardTypeId != 0 ? message.CardTypeId : 1;
-        var buyer = await _orderingContext.Buyers.FindAsync(userId);
+        var buyer = await _orderingContext.Buyers
+            .Where(b => b.IdentityGuid == userId)
+            .Include(b => b.PaymentMethods)
+            .SingleOrDefaultAsync();
+        
         bool buyerOriginallyExisted = buyer != null;
 
         if (!buyerOriginallyExisted)
         {
-            buyer = new Buyer(userId, userName);
+            buyer = new Buyer
+            {
+                IdentityGuid = userId,
+                Name = userName
+            };
         }
 
-        var paymentMethod = buyer.VerifyOrAddPaymentMethod(cardTypeId,
-            $"Payment Method on {DateTime.UtcNow}",
-            message.CardNumber,
-            message.CardSecurityNumber,
-            message.CardHolderName,
-            message.CardExpiration,
-            order.Id);
+        string alias = $"Payment Method on {DateTime.UtcNow}";
+        PaymentMethod paymentMethod;
+        var existingPayment = buyer.PaymentMethods
+            .SingleOrDefault(p => p.CardTypeId == cardTypeId
+                                  && p.CardNumber == message.CardNumber
+                                  && p.Expiration == message.CardExpiration);
+
+        if (existingPayment != null)
+        {
+            paymentMethod = existingPayment;
+        }
+        else
+        {
+            var payment = new PaymentMethod
+            {
+                CardNumber = message.CardNumber,
+                SecurityNumber = message.CardSecurityNumber,
+                CardHolderName = message.CardHolderName,
+                Alias = alias,
+                Expiration = message.CardExpiration,
+                CardTypeId = cardTypeId
+            };
+
+            buyer.PaymentMethods.Add(payment);
+
+            paymentMethod = payment;
+        }
 
         if (buyerOriginallyExisted)
         {
@@ -77,17 +109,15 @@ public class OrdersController : ControllerBase
             _orderingContext.Buyers.Add(buyer);
         }
         
-        // Update order details
-        order.SetPaymentId(paymentMethod.Id);
-        order.SetBuyerId(buyer.Id);
-        _orderingContext.Orders.Update(order);
-
-        result = await _orderingContext.SaveChangesAsync() > 0;
+        await _orderingContext.SaveChangesAsync();
         
-        if (!result)
-        {
-            return BadRequest();
-        }
+        // Update order details with buyer information
+        order.Buyer = buyer;
+        order.PaymentMethodId = paymentMethod.Id;
+        
+        _orderingContext.Orders.Update(order);
+        
+        await _orderingContext.SaveChangesAsync();
         
         return Ok();
     }
@@ -105,7 +135,8 @@ public class OrdersController : ControllerBase
                 return BadRequest();
             }
 
-            orderToUpdate.SetCancelledStatus();
+            orderToUpdate.OrderStatusId = OrderStatus.Cancelled.Id;
+            orderToUpdate.Description = $"The order was cancelled.";
 
             await _orderingContext.SaveChangesAsync();
         }
@@ -131,8 +162,9 @@ public class OrdersController : ControllerBase
                 return BadRequest();
             }
 
-            orderToUpdate.SetShippedStatus();
-            
+            orderToUpdate.OrderStatusId = OrderStatus.Shipped.Id;
+            orderToUpdate.Description = "The order was shipped.";
+
             await _orderingContext.SaveChangesAsync();
         }
         else 
@@ -172,13 +204,13 @@ public class OrdersController : ControllerBase
                 country = order.Address.Country,
                 date = order.OrderDate,
                 status = order.OrderStatus.ToString(),
-                total = order.GetTotal(),
+                total = Domain.AggregatesModel.OrderAggregate.OrderManager.GetTotal(order),
                 orderitems = order.OrderItems.Select(oi => new Orderitem
                 {
-                    productname = oi.GetOrderItemProductName(),
-                    pictureurl = oi.GetPictureUri(),
-                    unitprice = (double)oi.GetUnitPrice(),
-                    units = oi.GetUnits()
+                    productname = oi.ProductName,
+                    pictureurl = oi.PictureUrl,
+                    unitprice = (double)oi.UnitPrice,
+                    units = oi.Units
                 }).ToList()
             };
             
@@ -207,7 +239,7 @@ public class OrdersController : ControllerBase
                 ordernumber = o.Id,
                 date = o.OrderDate,
                 status = o.OrderStatus.ToString(),
-                total = (double)o.GetTotal()
+                total = (double)Domain.AggregatesModel.OrderAggregate.OrderManager.GetTotal(o)
             });
 
         return Ok(orderSummary);
@@ -235,18 +267,11 @@ public class OrdersController : ControllerBase
     [HttpPost]
     public ActionResult<OrderDraftDTO> CreateOrderDraftFromBasketDataAsync([FromBody] CreateOrderDraftCommand createOrderDraftCommand)
     {
-        _logger.LogInformation(
-            "----- Sending command: {CommandName} - {IdProperty}: {CommandId} ({@Command})",
-            createOrderDraftCommand.GetGenericTypeName(),
-            nameof(createOrderDraftCommand.BuyerId),
-            createOrderDraftCommand.BuyerId,
-            createOrderDraftCommand);
-        
-        var order = Ordering.Domain.AggregatesModel.OrderAggregate.Order.NewDraft();
+        var order = Ordering.Domain.AggregatesModel.OrderAggregate.OrderManager.NewDraft();
         var orderItems = createOrderDraftCommand.Items.Select(i => i.ToOrderItemDTO());
         foreach (var item in orderItems)
         {
-            order.AddOrderItem(item.ProductId, item.ProductName, item.UnitPrice, item.Discount, item.PictureUrl, item.Units);
+            OrderManager.AddOrderItem(order, item.ProductId, item.ProductName, item.UnitPrice, item.Discount, item.PictureUrl, item.Units);
         }
 
         var result = OrderDraftDTO.FromOrder(order);

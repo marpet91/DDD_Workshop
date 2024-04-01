@@ -1,32 +1,33 @@
-﻿namespace GrpcOrdering;
+﻿using Order = Microsoft.eShopOnContainers.Services.Ordering.Domain.AggregatesModel.OrderAggregate.Order;
+
+namespace GrpcOrdering;
 
 public class OrderingService : OrderingGrpc.OrderingGrpcBase
 {
-    private readonly IMediator _mediator;
     private readonly ILogger<OrderingService> _logger;
 
-    public OrderingService(IMediator mediator, ILogger<OrderingService> logger)
+    public OrderingService(ILogger<OrderingService> logger)
     {
-        _mediator = mediator;
         _logger = logger;
     }
 
     public override async Task<OrderDraftDTO> CreateOrderDraftFromBasketData(CreateOrderDraftCommand createOrderDraftCommand, ServerCallContext context)
     {
         _logger.LogInformation("Begin grpc call from method {Method} for ordering get order draft {CreateOrderDraftCommand}", context.Method, createOrderDraftCommand);
-        _logger.LogTrace(
-            "----- Sending command: {CommandName} - {IdProperty}: {CommandId} ({@Command})",
-            createOrderDraftCommand.GetGenericTypeName(),
-            nameof(createOrderDraftCommand.BuyerId),
-            createOrderDraftCommand.BuyerId,
-            createOrderDraftCommand);
 
         var command = new AppCommand.CreateOrderDraftCommand(
                         createOrderDraftCommand.BuyerId,
                         this.MapBasketItems(createOrderDraftCommand.Items));
 
 
-        var data = await _mediator.Send(command);
+        var order = Microsoft.eShopOnContainers.Services.Ordering.Domain.AggregatesModel.OrderAggregate.OrderManager.NewDraft();
+        var orderItems = command.Items.Select(i => i.ToOrderItemDTO());
+        foreach (var item in orderItems)
+        {
+            OrderManager.AddOrderItem(order, item.ProductId, item.ProductName, item.UnitPrice, item.Discount, item.PictureUrl, item.Units);
+        }
+
+        var data = AppCommand.OrderDraftDTO.FromOrder(order);
 
         if (data != null)
         {

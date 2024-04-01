@@ -13,14 +13,14 @@ public record OrderDraftDTO
         {
             OrderItems = order.OrderItems.Select(oi => new CreateOrderCommand.OrderItemDTO
             {
-                Discount = oi.GetCurrentDiscount(),
+                Discount = oi.Discount,
                 ProductId = oi.ProductId,
-                UnitPrice = oi.GetUnitPrice(),
-                PictureUrl = oi.GetPictureUri(),
-                Units = oi.GetUnits(),
-                ProductName = oi.GetOrderItemProductName()
+                UnitPrice = oi.UnitPrice,
+                PictureUrl = oi.PictureUrl,
+                Units = oi.Units,
+                ProductName = oi.ProductName
             }),
-            Total = order.GetTotal()
+            Total = OrderManager.GetTotal(order)
         };
     }
 

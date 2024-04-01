@@ -17,8 +17,7 @@ try
         new OrderingContextSeed()
             .SeedAsync(context, env, settings, logger)
             .Wait();
-    })
-    .MigrateDbContext<IntegrationEventLogContext>((_, __) => { });
+    });
 
     Log.Information("Starting web host ({ApplicationContext})...", Program.AppName);
     host.Run();

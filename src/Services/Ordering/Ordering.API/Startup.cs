@@ -28,8 +28,7 @@ public class Startup
             .AddCustomAuthentication(Configuration)
             .AddCustomAuthorization(Configuration)
             .AddCustomIntegrations(Configuration)
-            .AddCustomConfiguration(Configuration)
-            .AddEventBus(Configuration);
+            .AddCustomConfiguration(Configuration);
         //configure autofac
 
         var container = new ContainerBuilder();
@@ -183,17 +182,6 @@ static class CustomExtensionsMethods
                     ServiceLifetime.Scoped  //Showing explicitly that the DbContext is shared across the HTTP request scope (graph of objects started in the HTTP request)
                 );
 
-        services.AddDbContext<IntegrationEventLogContext>(options =>
-        {
-            options.UseSqlServer(configuration["ConnectionString"],
-                                    sqlServerOptionsAction: sqlOptions =>
-                                    {
-                                        sqlOptions.MigrationsAssembly(typeof(Startup).GetTypeInfo().Assembly.GetName().Name);
-                                        //Configuring Connection Resiliency: https://docs.microsoft.com/en-us/ef/core/miscellaneous/connection-resiliency 
-                                        sqlOptions.EnableRetryOnFailure(maxRetryCount: 15, maxRetryDelay: TimeSpan.FromSeconds(30), errorNumbersToAdd: null);
-                                    });
-        });
-
         return services;
     }
 
@@ -234,52 +222,6 @@ static class CustomExtensionsMethods
     {
         services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
         services.AddTransient<IIdentityService, IdentityService>();
-        services.AddTransient<Func<DbConnection, IIntegrationEventLogService>>(
-            sp => (DbConnection c) => new IntegrationEventLogService(c));
-        
-        if (configuration.GetValue<bool>("AzureServiceBusEnabled"))
-        {
-            services.AddSingleton<IServiceBusPersisterConnection>(sp =>
-            {
-                var serviceBusConnectionString = configuration["EventBusConnection"];
-
-                var subscriptionClientName = configuration["SubscriptionClientName"];
-
-                return new DefaultServiceBusPersisterConnection(serviceBusConnectionString);
-            });
-        }
-        else
-        {
-            services.AddSingleton<IRabbitMQPersistentConnection>(sp =>
-            {
-                var logger = sp.GetRequiredService<ILogger<DefaultRabbitMQPersistentConnection>>();
-
-
-                var factory = new ConnectionFactory()
-                {
-                    HostName = configuration["EventBusConnection"],
-                    DispatchConsumersAsync = true
-                };
-
-                if (!string.IsNullOrEmpty(configuration["EventBusUserName"]))
-                {
-                    factory.UserName = configuration["EventBusUserName"];
-                }
-
-                if (!string.IsNullOrEmpty(configuration["EventBusPassword"]))
-                {
-                    factory.Password = configuration["EventBusPassword"];
-                }
-
-                var retryCount = 5;
-                if (!string.IsNullOrEmpty(configuration["EventBusRetryCount"]))
-                {
-                    retryCount = int.Parse(configuration["EventBusRetryCount"]);
-                }
-
-                return new DefaultRabbitMQPersistentConnection(factory, logger, retryCount);
-            });
-        }
 
         return services;
     }
@@ -305,47 +247,6 @@ static class CustomExtensionsMethods
                 };
             };
         });
-
-        return services;
-    }
-
-    public static IServiceCollection AddEventBus(this IServiceCollection services, IConfiguration configuration)
-    {
-        if (configuration.GetValue<bool>("AzureServiceBusEnabled"))
-        {
-            services.AddSingleton<IEventBus, EventBusServiceBus>(sp =>
-            {
-                var serviceBusPersisterConnection = sp.GetRequiredService<IServiceBusPersisterConnection>();
-                var iLifetimeScope = sp.GetRequiredService<ILifetimeScope>();
-                var logger = sp.GetRequiredService<ILogger<EventBusServiceBus>>();
-                var eventBusSubcriptionsManager = sp.GetRequiredService<IEventBusSubscriptionsManager>();
-                string subscriptionName = configuration["SubscriptionClientName"];
-
-                return new EventBusServiceBus(serviceBusPersisterConnection, logger,
-                    eventBusSubcriptionsManager, iLifetimeScope, subscriptionName);
-            });
-        }
-        else
-        {
-            services.AddSingleton<IEventBus, EventBusRabbitMQ>(sp =>
-            {
-                var subscriptionClientName = configuration["SubscriptionClientName"];
-                var rabbitMQPersistentConnection = sp.GetRequiredService<IRabbitMQPersistentConnection>();
-                var iLifetimeScope = sp.GetRequiredService<ILifetimeScope>();
-                var logger = sp.GetRequiredService<ILogger<EventBusRabbitMQ>>();
-                var eventBusSubcriptionsManager = sp.GetRequiredService<IEventBusSubscriptionsManager>();
-
-                var retryCount = 5;
-                if (!string.IsNullOrEmpty(configuration["EventBusRetryCount"]))
-                {
-                    retryCount = int.Parse(configuration["EventBusRetryCount"]);
-                }
-
-                return new EventBusRabbitMQ(rabbitMQPersistentConnection, logger, iLifetimeScope, eventBusSubcriptionsManager, subscriptionClientName, retryCount);
-            });
-        }
-
-        services.AddSingleton<IEventBusSubscriptionsManager, InMemoryEventBusSubscriptionsManager>();
 
         return services;
     }

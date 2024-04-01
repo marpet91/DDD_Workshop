@@ -22,16 +22,11 @@ class BuyerEntityTypeConfiguration
         buyerConfiguration.Property(b => b.Name);
 
         buyerConfiguration.HasMany(b => b.PaymentMethods)
-            .WithOne()
-            .HasForeignKey("BuyerId")
+            .WithOne(pm => pm.Buyer)
             .OnDelete(DeleteBehavior.Cascade);
 
-        var navigation = buyerConfiguration.Metadata.FindNavigation(nameof(Buyer.PaymentMethods));
-
-        navigation.SetPropertyAccessMode(PropertyAccessMode.Field);
-
         buyerConfiguration.HasMany(b => b.Orders)
-            .WithOne()
-            .HasForeignKey("BuyerId");
+            .WithOne(o => o.Buyer)
+            .HasForeignKey(o => o.BuyerId);
     }
 }

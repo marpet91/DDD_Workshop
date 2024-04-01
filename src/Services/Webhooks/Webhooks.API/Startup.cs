@@ -22,8 +22,6 @@ public class Startup
             .AddCustomHealthCheck(Configuration)
             .AddDevspaces()
             .AddHttpClientServices(Configuration)
-            .AddIntegrationServices(Configuration)
-            .AddEventBus(Configuration)
             .AddCustomAuthentication(Configuration)
             .AddSingleton<IHttpContextAccessor, HttpContextAccessor>()
             .AddTransient<IIdentityService, IdentityService>()
@@ -72,22 +70,12 @@ public class Startup
                 c.OAuthClientId("webhooksswaggerui");
                 c.OAuthAppName("WebHooks Service Swagger UI");
             });
-
-        ConfigureEventBus(app);
     }
 
     protected virtual void ConfigureAuth(IApplicationBuilder app)
     {
         app.UseAuthentication();
         app.UseAuthorization();
-    }
-
-    protected virtual void ConfigureEventBus(IApplicationBuilder app)
-    {
-        var eventBus = app.ApplicationServices.GetRequiredService<IEventBus>();
-        eventBus.Subscribe<ProductPriceChangedIntegrationEvent, ProductPriceChangedIntegrationEventHandler>();
-        eventBus.Subscribe<OrderStatusChangedToShippedIntegrationEvent, OrderStatusChangedToShippedIntegrationEventHandler>();
-        eventBus.Subscribe<OrderStatusChangedToPaidIntegrationEvent, OrderStatusChangedToPaidIntegrationEventHandler>();
     }
 }
 
@@ -171,50 +159,6 @@ internal static class CustomExtensionMethods
 
         return services;
     }
-    public static IServiceCollection AddEventBus(this IServiceCollection services, IConfiguration configuration)
-    {
-        if (configuration.GetValue<bool>("AzureServiceBusEnabled"))
-        {
-            services.AddSingleton<IEventBus, EventBusServiceBus>(sp =>
-            {
-                var serviceBusPersisterConnection = sp.GetRequiredService<IServiceBusPersisterConnection>();
-                var iLifetimeScope = sp.GetRequiredService<ILifetimeScope>();
-                var logger = sp.GetRequiredService<ILogger<EventBusServiceBus>>();
-                var eventBusSubscriptionManager = sp.GetRequiredService<IEventBusSubscriptionsManager>();
-                string subscriptionName = configuration["SubscriptionClientName"];
-
-                return new EventBusServiceBus(serviceBusPersisterConnection, logger,
-                    eventBusSubscriptionManager, iLifetimeScope, subscriptionName);
-            });
-
-        }
-        else
-        {
-            services.AddSingleton<IEventBus, EventBusRabbitMQ>(sp =>
-            {
-                var subscriptionClientName = configuration["SubscriptionClientName"];
-                var rabbitMQPersistentConnection = sp.GetRequiredService<IRabbitMQPersistentConnection>();
-                var iLifetimeScope = sp.GetRequiredService<ILifetimeScope>();
-                var logger = sp.GetRequiredService<ILogger<EventBusRabbitMQ>>();
-                var eventBusSubscriptionManager = sp.GetRequiredService<IEventBusSubscriptionsManager>();
-
-                var retryCount = 5;
-                if (!string.IsNullOrEmpty(configuration["EventBusRetryCount"]))
-                {
-                    retryCount = int.Parse(configuration["EventBusRetryCount"]);
-                }
-
-                return new EventBusRabbitMQ(rabbitMQPersistentConnection, logger, iLifetimeScope, eventBusSubscriptionManager, subscriptionClientName, retryCount);
-            });
-        }
-
-        services.AddSingleton<IEventBusSubscriptionsManager, InMemoryEventBusSubscriptionsManager>();
-        services.AddTransient<ProductPriceChangedIntegrationEventHandler>();
-        services.AddTransient<OrderStatusChangedToShippedIntegrationEventHandler>();
-        services.AddTransient<OrderStatusChangedToPaidIntegrationEventHandler>();
-
-        return services;
-    }
 
     public static IServiceCollection AddCustomHealthCheck(this IServiceCollection services, IConfiguration configuration)
     {
@@ -240,55 +184,7 @@ internal static class CustomExtensionMethods
                 .AddDevspacesSupport();
         return services;
     }
-
-    public static IServiceCollection AddIntegrationServices(this IServiceCollection services, IConfiguration configuration)
-    {
-        services.AddTransient<Func<DbConnection, IIntegrationEventLogService>>(
-                sp => (DbConnection c) => new IntegrationEventLogService(c));
-
-            if (configuration.GetValue<bool>("AzureServiceBusEnabled"))
-            {
-                services.AddSingleton<IServiceBusPersisterConnection>(sp =>
-                {
-                    var subscriptionClientName = configuration["SubscriptionClientName"];
-                    return new DefaultServiceBusPersisterConnection(configuration["EventBusConnection"]);
-                });
-            }
-            else
-            {
-                services.AddSingleton<IRabbitMQPersistentConnection>(sp =>
-                {
-                    var logger = sp.GetRequiredService<ILogger<DefaultRabbitMQPersistentConnection>>();
-
-                    var factory = new ConnectionFactory()
-                    {
-                        HostName = configuration["EventBusConnection"],
-                        DispatchConsumersAsync = true
-                    };
-
-                    if (!string.IsNullOrEmpty(configuration["EventBusUserName"]))
-                    {
-                        factory.UserName = configuration["EventBusUserName"];
-                    }
-
-                    if (!string.IsNullOrEmpty(configuration["EventBusPassword"]))
-                    {
-                        factory.Password = configuration["EventBusPassword"];
-                    }
-
-                    var retryCount = 5;
-                    if (!string.IsNullOrEmpty(configuration["EventBusRetryCount"]))
-                    {
-                        retryCount = int.Parse(configuration["EventBusRetryCount"]);
-                    }
-
-                    return new DefaultRabbitMQPersistentConnection(factory, logger, retryCount);
-                });
-            }
-
-            return services;
-    }
-
+    
     public static IServiceCollection AddCustomAuthentication(this IServiceCollection services, IConfiguration configuration)
     {
         var identityUrl = configuration.GetValue<string>("IdentityUrl");

@@ -1,16 +1,8 @@
-﻿namespace Microsoft.eShopOnContainers.Services.Ordering.API.Application.Commands;
+namespace Microsoft.eShopOnContainers.Services.Ordering.API.Application.Commands;
 
-public class CancelOrderCommand : IRequest<bool>
+public class CancelOrderCommand
 {
 
     [DataMember]
     public int OrderNumber { get; set; }
-    public CancelOrderCommand()
-    {
-
-    }
-    public CancelOrderCommand(int orderNumber)
-    {
-        OrderNumber = orderNumber;
-    }
 }

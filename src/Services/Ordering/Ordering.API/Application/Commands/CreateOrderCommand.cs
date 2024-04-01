@@ -13,7 +13,6 @@ using Microsoft.eShopOnContainers.Services.Ordering.API.Application.Models;
 
 [DataContract]
 public class CreateOrderCommand
-    : IRequest<bool>
 {
     [DataMember]
     private readonly List<OrderItemDTO> _orderItems;

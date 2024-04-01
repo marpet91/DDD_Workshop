@@ -1,7 +1,7 @@
 ﻿namespace Microsoft.eShopOnContainers.Services.Ordering.API.Application.Commands;
 using Microsoft.eShopOnContainers.Services.Ordering.API.Application.Models;
 
-public class CreateOrderDraftCommand : IRequest<OrderDraftDTO>
+public class CreateOrderDraftCommand
 {
 
     public string BuyerId { get; private set; }

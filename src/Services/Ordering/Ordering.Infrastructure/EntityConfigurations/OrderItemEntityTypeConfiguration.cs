@@ -16,36 +16,26 @@ class OrderItemEntityTypeConfiguration
             .IsRequired();
 
         orderItemConfiguration
-            .Property<decimal>("_discount")
-            .UsePropertyAccessMode(PropertyAccessMode.Field)
-            .HasColumnName("Discount")
+            .Property(oi => oi.Discount)
             .IsRequired();
 
-        orderItemConfiguration.Property<int>("ProductId")
-            .IsRequired();
-
-        orderItemConfiguration
-            .Property<string>("_productName")
-            .UsePropertyAccessMode(PropertyAccessMode.Field)
-            .HasColumnName("ProductName")
+        orderItemConfiguration.Property(oi => oi.ProductId)
             .IsRequired();
 
         orderItemConfiguration
-            .Property<decimal>("_unitPrice")
-            .UsePropertyAccessMode(PropertyAccessMode.Field)
-            .HasColumnName("UnitPrice")
+            .Property(oi => oi.ProductName)
             .IsRequired();
 
         orderItemConfiguration
-            .Property<int>("_units")
-            .UsePropertyAccessMode(PropertyAccessMode.Field)
-            .HasColumnName("Units")
+            .Property(oi => oi.UnitPrice)
             .IsRequired();
 
         orderItemConfiguration
-            .Property<string>("_pictureUrl")
-            .UsePropertyAccessMode(PropertyAccessMode.Field)
-            .HasColumnName("PictureUrl")
+            .Property(oi => oi.Units)
+            .IsRequired();
+
+        orderItemConfiguration
+            .Property(oi => oi.PictureUrl)
             .IsRequired(false);
     }
 }

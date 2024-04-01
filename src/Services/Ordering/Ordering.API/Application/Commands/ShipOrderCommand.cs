@@ -1,6 +1,6 @@
 ﻿namespace Microsoft.eShopOnContainers.Services.Ordering.API.Application.Commands;
 
-public class ShipOrderCommand : IRequest<bool>
+public class ShipOrderCommand
 {
 
     [DataMember]

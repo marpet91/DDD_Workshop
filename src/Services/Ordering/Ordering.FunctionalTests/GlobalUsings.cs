@@ -3,7 +3,6 @@ global using Microsoft.AspNetCore.Hosting;
 global using Microsoft.AspNetCore.Http;
 global using Microsoft.AspNetCore.Routing;
 global using Microsoft.AspNetCore.TestHost;
-global using Microsoft.eShopOnContainers.BuildingBlocks.IntegrationEventLogEF;
 global using Microsoft.eShopOnContainers.Services.Ordering.API.Infrastructure;
 global using Microsoft.eShopOnContainers.Services.Ordering.API;
 global using Microsoft.eShopOnContainers.Services.Ordering.Infrastructure;

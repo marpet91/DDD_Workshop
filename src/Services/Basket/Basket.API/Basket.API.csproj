@@ -49,8 +49,4 @@
     <Content Include="@(Protobuf)"/>
     <None Remove="@(Protobuf)"/>
   </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\BuildingBlocks\EventBus\EventBus\EventBus.csproj" />
-  </ItemGroup>
 </Project>
