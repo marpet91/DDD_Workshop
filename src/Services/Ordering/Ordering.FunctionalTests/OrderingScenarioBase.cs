@@ -1,4 +1,6 @@
-﻿namespace Ordering.FunctionalTests;
+﻿using Microsoft.Extensions.Hosting;
+
+namespace Ordering.FunctionalTests;
 
 public class OrderingScenarioBase
 {
@@ -9,6 +11,7 @@ public class OrderingScenarioBase
 
         var hostBuilder = new WebHostBuilder()
             .UseContentRoot(Path.GetDirectoryName(path))
+            .UseEnvironment(Environments.Development)
             .ConfigureAppConfiguration(cb =>
             {
                 cb.AddJsonFile("appsettings.json", optional: false)
@@ -44,6 +47,7 @@ public class OrderingScenarioBase
 
     public static class Put
     {
+        public static string NewOrder = "api/v1/orders/new";
         public static string CancelOrder = "api/v1/orders/cancel";
         public static string ShipOrder = "api/v1/orders/ship";
     }

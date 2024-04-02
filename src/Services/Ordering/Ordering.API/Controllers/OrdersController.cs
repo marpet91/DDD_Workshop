@@ -19,7 +19,7 @@ public class OrdersController : ControllerBase
 
     [Route("new")]
     [HttpPut]
-    [ProducesResponseType((int)HttpStatusCode.OK)]
+    [ProducesResponseType((int)HttpStatusCode.Created)]
     [ProducesResponseType((int)HttpStatusCode.BadRequest)]
     public async Task<IActionResult> NewOrderAsync([FromBody] NewOrderModel model, [FromHeader(Name = "x-requestid")] string requestId)
     {
@@ -116,8 +116,8 @@ public class OrdersController : ControllerBase
         _orderingContext.Orders.Update(order);
         
         await _orderingContext.SaveChangesAsync();
-        
-        return Ok();
+
+        return CreatedAtAction("GetOrder", new { orderId = order.Id }, null);
     }
     [Route("cancel")]
     [HttpPut]

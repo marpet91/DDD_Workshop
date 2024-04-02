@@ -1,16 +1,27 @@
-﻿using System.Net;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Net;
 using System.Net.Http;
+using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using Microsoft.eShopOnContainers.Services.Ordering.API.DTOs;
 using WebMVC.Services.ModelDTOs;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace Ordering.FunctionalTests
 {
     public class OrderingScenarios
         : OrderingScenarioBase
     {
+        private readonly ITestOutputHelper _output;
+
+        public OrderingScenarios(ITestOutputHelper output)
+        {
+            _output = output;
+        }
         [Fact]
         public async Task Get_get_all_stored_orders_and_response_ok_status_code()
         {
@@ -18,7 +29,35 @@ namespace Ordering.FunctionalTests
             var response = await server.CreateClient()
                 .GetAsync(Get.Orders);
 
-            response.EnsureSuccessStatusCode();
+            await response.EnsureSuccessResponseCodeAsync(_output);
+        }
+        
+        [Fact]
+        public async Task Put_creates_order_and_buyer()
+        {
+            using var server = CreateServer();
+            var newOrder = BuildNewOrder();
+            var content = JsonContent.Create(newOrder);
+            var response = await server.CreateClient()
+                .PutAsync(Put.NewOrder, content);
+
+            await response.EnsureSuccessResponseCodeAsync(_output);
+
+            var orderLocation = response.Headers.Location;
+
+            Assert.NotNull(orderLocation);
+            
+            Assert.True(int.TryParse(orderLocation.Segments.Last(), out var orderId));
+
+            response = await server.CreateClient()
+                .GetAsync(Get.OrderBy(orderId));
+
+            await response.EnsureSuccessResponseCodeAsync(_output);
+
+            var order = await response.Content.ReadFromJsonAsync<OrderDto>();
+            
+            Assert.Equal(newOrder.Street, order.Street);
+            Assert.Equal(newOrder.OrderItems.Count, order.OrderItems.Count);
         }
 
         [Fact]
@@ -50,6 +89,44 @@ namespace Ordering.FunctionalTests
                 OrderNumber = "-1"
             };
             return JsonSerializer.Serialize(order);
+        }
+
+        NewOrderModel BuildNewOrder()
+        {
+            var newOrder = new NewOrderModel
+            {
+                Street = "123 Cherry Park Ln",
+                City = "Redmond",
+                State = "WA",
+                ZipCode = "98008",
+                Country = "USA",
+                OrderItems =
+                [
+                    new()
+                    {
+                        ProductId = 1,
+                        ProductName = ".NET Bot Black Hoodie",
+                        UnitPrice = 19.5m,
+                        Units = 4,
+                        PictureUrl = "/1.png"
+                    },
+                    new()
+                    {
+                        ProductId = 8,
+                        ProductName = "Kudu Purple Hoodie",
+                        UnitPrice = 8.5m,
+                        Units = 2,
+                        PictureUrl = "/8.png"
+                    }
+                ],
+                CardHolderName = "Satya Nadella",
+                CardTypeId = 1,
+                CardNumber = "4111111111111111",
+                CardExpiration = DateTime.UtcNow.AddYears(1),
+                CardSecurityNumber = "123"
+            };
+            
+            return newOrder;
         }
     }
 }

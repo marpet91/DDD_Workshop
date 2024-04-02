@@ -1,4 +1,6 @@
-﻿namespace Ordering.FunctionalTests;
+﻿using Xunit.Abstractions;
+
+namespace Ordering.FunctionalTests;
 
 static class HttpClientExtensions
 {
@@ -7,5 +9,18 @@ static class HttpClientExtensions
         var client = server.CreateClient();
         client.DefaultRequestHeaders.Add("x-requestid", Guid.NewGuid().ToString());
         return client;
+    }   
+    
+    public static async Task EnsureSuccessResponseCodeAsync(this HttpResponseMessage response, ITestOutputHelper output)
+    {
+        try
+        {
+            response.EnsureSuccessStatusCode();
+        }
+        catch
+        {
+            output.WriteLine(await response.Content.ReadAsStringAsync());
+            throw;
+        }
     }
 }
