@@ -1,6 +1,5 @@
 
 global using System.IO.Compression;
-global using Autofac.Extensions.DependencyInjection;
 global using Azure.Core;
 global using Azure.Identity;
 global using HealthChecks.UI.Client;

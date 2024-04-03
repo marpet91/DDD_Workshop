@@ -12,7 +12,6 @@
   <ItemGroup>
     <PackageReference Include="AspNetCore.HealthChecks.SqlServer" Version="8.0.0" />
     <PackageReference Include="AspNetCore.HealthChecks.UI.Client" Version="8.0.0" />
-    <PackageReference Include="Autofac.Extensions.DependencyInjection" Version="9.0.0" />
     <PackageReference Include="Duende.IdentityServer.AspNetIdentity" Version="7.0.1" />
     <PackageReference Include="Duende.IdentityServer.EntityFramework.Storage" Version="7.0.1" />
     <PackageReference Include="Duende.IdentityServer.EntityFramework" Version="7.0.1" />
