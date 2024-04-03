@@ -11,7 +11,6 @@ global using System.Reflection;
 global using FunctionalTests.Middleware;
 global using Microsoft.AspNetCore.Builder;
 global using Microsoft.eShopOnContainers.Services.Basket.API;
-global using Microsoft.eShopOnContainers.BuildingBlocks.IntegrationEventLogEF;
 global using Microsoft.eShopOnContainers.Services.Catalog.API;
 global using Microsoft.eShopOnContainers.Services.Catalog.API.Infrastructure;
 global using Microsoft.Extensions.DependencyInjection;

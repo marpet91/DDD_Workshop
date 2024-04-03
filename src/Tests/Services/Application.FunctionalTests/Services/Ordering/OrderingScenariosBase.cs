@@ -27,8 +27,7 @@ public class OrderingScenariosBase
                 new OrderingContextSeed()
                     .SeedAsync(context, env, settings, logger)
                     .Wait();
-            })
-            .MigrateDbContext<IntegrationEventLogContext>((_, __) => { });
+            });
 
         return testServer;
     }

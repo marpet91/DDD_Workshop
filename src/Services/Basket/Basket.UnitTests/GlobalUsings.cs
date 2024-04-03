@@ -1,8 +1,6 @@
-﻿global using Basket.API.IntegrationEvents.Events;
-global using Basket.API.Model;
+﻿global using Basket.API.Model;
 global using Microsoft.AspNetCore.Http;
 global using Microsoft.AspNetCore.Mvc;
-global using Microsoft.eShopOnContainers.BuildingBlocks.EventBus.Abstractions;
 global using Microsoft.eShopOnContainers.Services.Basket.API.Controllers;
 global using Microsoft.eShopOnContainers.Services.Basket.API.Model;
 global using Microsoft.Extensions.Logging;

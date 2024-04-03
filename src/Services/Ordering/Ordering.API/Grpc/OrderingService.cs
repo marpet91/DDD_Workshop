@@ -2,47 +2,45 @@
 
 public class OrderingService : OrderingGrpc.OrderingGrpcBase
 {
-    private readonly IMediator _mediator;
     private readonly ILogger<OrderingService> _logger;
 
-    public OrderingService(IMediator mediator, ILogger<OrderingService> logger)
+    public OrderingService(ILogger<OrderingService> logger)
     {
-        _mediator = mediator;
         _logger = logger;
     }
 
-    public override async Task<OrderDraftDTO> CreateOrderDraftFromBasketData(CreateOrderDraftCommand createOrderDraftCommand, ServerCallContext context)
+    public override Task<OrderDraftDTO> CreateOrderDraftFromBasketData(CreateOrderDraftCommand createOrderDraftCommand, ServerCallContext context)
     {
         _logger.LogInformation("Begin grpc call from method {Method} for ordering get order draft {CreateOrderDraftCommand}", context.Method, createOrderDraftCommand);
-        _logger.LogTrace(
-            "----- Sending command: {CommandName} - {IdProperty}: {CommandId} ({@Command})",
-            createOrderDraftCommand.GetGenericTypeName(),
-            nameof(createOrderDraftCommand.BuyerId),
-            createOrderDraftCommand.BuyerId,
-            createOrderDraftCommand);
 
-        var command = new AppCommand.CreateOrderDraftCommand(
-                        createOrderDraftCommand.BuyerId,
-                        this.MapBasketItems(createOrderDraftCommand.Items));
+        var model = new CreateOrderDraftModel
+        {
+            BuyerId = createOrderDraftCommand.BuyerId,
+            Items = MapBasketItems(createOrderDraftCommand.Items)
+        };
 
+        var order = new Order();
+        var orderItems = model.Items.Select(i => i.ToOrderItemDTO());
+        foreach (var item in orderItems)
+        {
+            OrderManager.AddOrderItem(order, item.ProductId, item.ProductName, item.UnitPrice, item.Discount, item.PictureUrl, item.Units);
+        }
 
-        var data = await _mediator.Send(command);
+        var data = OrderDraftModel.FromOrder(order);
 
         if (data != null)
         {
             context.Status = new Status(StatusCode.OK, $" ordering get order draft {createOrderDraftCommand} do exist");
 
-            return this.MapResponse(data);
-        }
-        else
-        {
-            context.Status = new Status(StatusCode.NotFound, $" ordering get order draft {createOrderDraftCommand} do not exist");
+            return Task.FromResult(MapResponse(data));
         }
 
-        return new OrderDraftDTO();
+        context.Status = new Status(StatusCode.NotFound, $" ordering get order draft {createOrderDraftCommand} do not exist");
+
+        return Task.FromResult(new OrderDraftDTO());
     }
 
-    public OrderDraftDTO MapResponse(AppCommand.OrderDraftDTO order)
+    public OrderDraftDTO MapResponse(OrderDraftModel order)
     {
         var result = new OrderDraftDTO()
         {
@@ -62,9 +60,9 @@ public class OrderingService : OrderingGrpc.OrderingGrpcBase
         return result;
     }
 
-    public IEnumerable<ApiModels.BasketItem> MapBasketItems(RepeatedField<BasketItem> items)
+    public IEnumerable<ApiDto.BasketItem> MapBasketItems(RepeatedField<BasketItem> items)
     {
-        return items.Select(x => new ApiModels.BasketItem()
+        return items.Select(x => new ApiDto.BasketItem()
         {
             Id = x.Id,
             ProductId = x.ProductId,

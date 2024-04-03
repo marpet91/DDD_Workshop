@@ -8,71 +8,45 @@ class OrderEntityTypeConfiguration : IEntityTypeConfiguration<Order>
 
         orderConfiguration.HasKey(o => o.Id);
 
-        orderConfiguration.Ignore(b => b.DomainEvents);
-
         orderConfiguration.Property(o => o.Id)
             .UseHiLo("orderseq", OrderingContext.DEFAULT_SCHEMA);
 
-        //Address value object persisted as owned entity type supported since EF Core 2.0
         orderConfiguration
             .OwnsOne(o => o.Address, a =>
             {
-                // Explicit configuration of the shadow key property in the owned type 
-                // as a workaround for a documented issue in EF Core 5: https://github.com/dotnet/efcore/issues/20740
                 a.Property<int>("OrderId")
                 .UseHiLo("orderseq", OrderingContext.DEFAULT_SCHEMA);
                 a.WithOwner();
             });
-
+        
         orderConfiguration
-            .Property<int?>("_buyerId")
-            .UsePropertyAccessMode(PropertyAccessMode.Field)
-            .HasColumnName("BuyerId")
+            .Property(o => o.OrderDate)
+            .IsRequired();
+
+        orderConfiguration.HasOne(o => o.OrderStatus);
+        
+        orderConfiguration
+            .Property(o => o.PaymentMethodId)
             .IsRequired(false);
 
         orderConfiguration
-            .Property<DateTime>("_orderDate")
-            .UsePropertyAccessMode(PropertyAccessMode.Field)
-            .HasColumnName("OrderDate")
-            .IsRequired();
-
-        orderConfiguration
-            .Property<int>("_orderStatusId")
-            // .HasField("_orderStatusId")
-            .UsePropertyAccessMode(PropertyAccessMode.Field)
-            .HasColumnName("OrderStatusId")
-            .IsRequired();
-
-        orderConfiguration
-            .Property<int?>("_paymentMethodId")
-            .UsePropertyAccessMode(PropertyAccessMode.Field)
-            .HasColumnName("PaymentMethodId")
+            .Property(o => o.Description)
             .IsRequired(false);
 
-        orderConfiguration.Property<string>("Description").IsRequired(false);
-
-        var navigation = orderConfiguration.Metadata.FindNavigation(nameof(Order.OrderItems));
-
-        // DDD Patterns comment:
-        //Set as field (New since EF 1.1) to access the OrderItem collection property through its field
-        navigation.SetPropertyAccessMode(PropertyAccessMode.Field);
+        orderConfiguration
+            .HasMany(o => o.OrderItems)
+            .WithOne();
 
         orderConfiguration.HasOne<PaymentMethod>()
             .WithMany()
-            // .HasForeignKey("PaymentMethodId")
-            .HasForeignKey("_paymentMethodId")
             .IsRequired(false)
             .OnDelete(DeleteBehavior.Restrict);
 
-        orderConfiguration.HasOne<Buyer>()
+        orderConfiguration.HasOne(o => o.Buyer)
             .WithMany()
-            .IsRequired(false)
-            // .HasForeignKey("BuyerId");
-            .HasForeignKey("_buyerId");
+            .IsRequired(false);
 
         orderConfiguration.HasOne(o => o.OrderStatus)
-            .WithMany()
-            // .HasForeignKey("OrderStatusId");
-            .HasForeignKey("_orderStatusId");
+            .WithMany();
     }
 }

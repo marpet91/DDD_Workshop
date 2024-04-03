@@ -13,6 +13,7 @@
     <DockerfileContext>..\..\..</DockerfileContext>
     <DockerComposeProjectPath>..\..\..\docker-compose.dcproj</DockerComposeProjectPath>
     <SpaRoot>Client\</SpaRoot>
+    <RootNamespace>Microsoft.eShopOnContainers.WebSPA</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

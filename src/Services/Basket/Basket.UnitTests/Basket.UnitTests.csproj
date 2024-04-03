@@ -4,6 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <GenerateErrorForMissingTargetingPacks>false</GenerateErrorForMissingTargetingPacks>
     <IsPackable>false</IsPackable>
+    <RootNamespace>Microsoft.eShopOnContainers.Services.Basket.UnitTests</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

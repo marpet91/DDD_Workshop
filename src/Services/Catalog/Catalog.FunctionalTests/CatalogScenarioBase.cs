@@ -29,8 +29,7 @@ public class CatalogScenariosBase
                 new CatalogContextSeed()
                 .SeedAsync(context, env, settings, logger)
                 .Wait();
-            })
-            .MigrateDbContext<IntegrationEventLogContext>((_, __) => { });
+            });
 
         return testServer;
     }

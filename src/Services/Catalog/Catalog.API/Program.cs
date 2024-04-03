@@ -15,8 +15,7 @@ try
         var logger = services.GetService<ILogger<CatalogContextSeed>>();
 
         new CatalogContextSeed().SeedAsync(context, env, settings, logger).Wait();
-    })
-    .MigrateDbContext<IntegrationEventLogContext>((_, __) => { });
+    });
 
     Log.Information("Starting web host ({ApplicationContext})...", Program.AppName);
     host.Run();

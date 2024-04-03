@@ -40,7 +40,10 @@ public class HttpGlobalExceptionFilter : IExceptionFilter
 
             if (env.IsDevelopment())
             {
-                json.DeveloperMessage = context.Exception;
+                json.DeveloperMessage = new
+                {
+                    Message = context.Exception.ToString(),
+                };
             }
 
             // Result asigned to a result object but in destiny the response is empty. This is a known bug of .net core 1.1

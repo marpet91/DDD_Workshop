@@ -3,6 +3,7 @@
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
     <IsPackable>false</IsPackable>
+    <RootNamespace>Microsoft.eShopOnContainers.Services.Basket.FunctionalTests</RootNamespace>
   </PropertyGroup>
 
   <ItemGroup>

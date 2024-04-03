@@ -1,5 +1,4 @@
-﻿using Microsoft.eShopOnContainers.Services.Catalog.API.IntegrationEvents;
-using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.eShopOnContainers.Services.Catalog.API;
 using Microsoft.eShopOnContainers.Services.Catalog.API.Controllers;
@@ -45,10 +44,8 @@ public class CatalogControllerTest
         var catalogContext = new CatalogContext(_dbOptions);
         var catalogSettings = new TestCatalogSettings();
 
-        var integrationServicesMock = new Mock<ICatalogIntegrationEventService>();
-
         //Act
-        var orderController = new CatalogController(catalogContext, catalogSettings, integrationServicesMock.Object);
+        var orderController = new CatalogController(catalogContext, catalogSettings);
         var actionResult = await orderController.ItemsByTypeIdAndBrandIdAsync(typesFilterApplied, brandFilterApplied, pageSize, pageIndex);
 
         //Assert

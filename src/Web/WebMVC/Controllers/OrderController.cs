@@ -37,6 +37,7 @@ public class OrderController : Controller
                 var basket = _orderSvc.MapOrderToBasket(model);
 
                 await _basketSvc.Checkout(basket);
+                await _orderSvc.CreateOrder(model);
 
                 //Redirect to historic list.
                 return RedirectToAction("Index");

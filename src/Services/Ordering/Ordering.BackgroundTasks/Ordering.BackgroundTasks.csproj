@@ -5,6 +5,7 @@
     <UserSecretsId>dotnet-Ordering.BackgroundTasks-9D3E1DD6-405B-447F-8AAB-1708B36D260E</UserSecretsId>
     <GenerateErrorForMissingTargetingPacks>false</GenerateErrorForMissingTargetingPacks>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>    
+    <RootNamespace>Microsoft.eShopOnContainers.Services.Ordering.BackgroundTasks</RootNamespace>    
   </PropertyGroup>
 
   <ItemGroup>
@@ -25,11 +26,5 @@
     <PackageReference Include="Serilog.Sinks.Http" Version="8.0.0" />
     <PackageReference Include="Serilog.Sinks.Seq" Version="5.2.3-dev-00260" />
     <PackageReference Include="System.Data.SqlClient" Version="4.8.6" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\..\..\BuildingBlocks\EventBus\EventBusRabbitMQ\EventBusRabbitMQ.csproj" />
-    <ProjectReference Include="..\..\..\BuildingBlocks\EventBus\EventBusServiceBus\EventBusServiceBus.csproj" />
-    <ProjectReference Include="..\..\..\BuildingBlocks\EventBus\EventBus\EventBus.csproj" />
   </ItemGroup>
 </Project>

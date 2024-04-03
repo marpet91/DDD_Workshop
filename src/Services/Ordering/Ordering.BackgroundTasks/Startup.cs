@@ -7,7 +7,6 @@
     using Microsoft.Extensions.DependencyInjection;
     using Microsoft.Extensions.Logging;
     using Ordering.BackgroundTasks.Extensions;
-    using Ordering.BackgroundTasks.Services;
 
     public class Startup
     {
@@ -22,9 +21,7 @@
         {
             services.AddCustomHealthCheck(this.Configuration)
                 .Configure<BackgroundTaskSettings>(this.Configuration)
-                .AddOptions()
-                .AddHostedService<GracePeriodManagerService>()
-                .AddEventBus(this.Configuration);
+                .AddOptions();
         }
 
 
