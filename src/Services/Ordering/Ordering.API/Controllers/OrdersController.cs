@@ -21,7 +21,7 @@ public class OrdersController : ControllerBase
     [HttpPut]
     [ProducesResponseType((int)HttpStatusCode.Created)]
     [ProducesResponseType((int)HttpStatusCode.BadRequest)]
-    public async Task<IActionResult> NewOrderAsync([FromBody] NewOrderModel model, [FromHeader(Name = "x-requestid")] string requestId)
+    public async Task<IActionResult> NewOrderAsync([FromBody] NewOrderModel model)
     {
         // Get the user info
         var userId = HttpContext.User.FindFirst("sub").Value;
@@ -123,25 +123,18 @@ public class OrdersController : ControllerBase
     [HttpPut]
     [ProducesResponseType((int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.BadRequest)]
-    public async Task<IActionResult> CancelOrderAsync([FromBody] CancelOrderModel model, [FromHeader(Name = "x-requestid")] string requestId)
+    public async Task<IActionResult> CancelOrderAsync([FromBody] CancelOrderModel model)
     {
-        if (Guid.TryParse(requestId, out Guid guid) && guid != Guid.Empty)
-        {
-            var orderToUpdate = await _orderingContext.Orders.FindAsync(model.OrderNumber);
-            if (orderToUpdate == null)
-            {
-                return BadRequest();
-            }
-
-            orderToUpdate.OrderStatusId = OrderStatus.Cancelled.Id;
-            orderToUpdate.Description = $"The order was cancelled.";
-
-            await _orderingContext.SaveChangesAsync();
-        }
-        else
+        var orderToUpdate = await _orderingContext.Orders.FindAsync(model.OrderNumber);
+        if (orderToUpdate == null)
         {
             return BadRequest();
         }
+
+        orderToUpdate.OrderStatusId = OrderStatus.Cancelled.Id;
+        orderToUpdate.Description = $"The order was cancelled.";
+
+        await _orderingContext.SaveChangesAsync();
 
         return Ok();
     }
@@ -150,25 +143,18 @@ public class OrdersController : ControllerBase
     [HttpPut]
     [ProducesResponseType((int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.BadRequest)]
-    public async Task<IActionResult> ShipOrderAsync([FromBody] ShipOrderModel model, [FromHeader(Name = "x-requestid")] string requestId)
+    public async Task<IActionResult> ShipOrderAsync([FromBody] ShipOrderModel model)
     {
-        if (Guid.TryParse(requestId, out Guid guid) && guid != Guid.Empty)
-        {
-            var orderToUpdate = await _orderingContext.Orders.FindAsync(model.OrderNumber);
-            if (orderToUpdate == null)
-            {
-                return BadRequest();
-            }
-
-            orderToUpdate.OrderStatusId = OrderStatus.Shipped.Id;
-            orderToUpdate.Description = "The order was shipped.";
-
-            await _orderingContext.SaveChangesAsync();
-        }
-        else 
+        var orderToUpdate = await _orderingContext.Orders.FindAsync(model.OrderNumber);
+        if (orderToUpdate == null)
         {
             return BadRequest();
         }
+
+        orderToUpdate.OrderStatusId = OrderStatus.Shipped.Id;
+        orderToUpdate.Description = "The order was shipped.";
+
+        await _orderingContext.SaveChangesAsync();
 
         return Ok();
     }
