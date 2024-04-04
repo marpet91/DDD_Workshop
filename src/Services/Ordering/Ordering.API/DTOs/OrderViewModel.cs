@@ -22,14 +22,6 @@ public record OrderDto
     public decimal Total { get; set; }
 }
 
-public record OrderSummaryDto
-{
-    public int OrderNumber { get; set; }
-    public DateTime Date { get; set; }
-    public string Status { get; set; }
-    public decimal Total { get; set; }
-}
-
 public record CardTypeDto
 {
     public int Id { get; set; }

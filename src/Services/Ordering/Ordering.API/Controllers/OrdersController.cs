@@ -1,20 +1,23 @@
-﻿namespace Microsoft.eShopOnContainers.Services.Ordering.API.Controllers;
+using MediatR;
+using Microsoft.eShopOnContainers.Services.Ordering.API.Features.Orders.ShipOrder;
+using Microsoft.eShopOnContainers.Services.Ordering.API.Features.Orders.GetOrders;
+
+namespace Microsoft.eShopOnContainers.Services.Ordering.API.Controllers;
 
 using ApiDto;
-using Microsoft.eShopOnContainers.Services.Ordering.API.Infrastructure.Services;
 
 [Route("api/v1/[controller]")]
 [Authorize]
 [ApiController]
 public class OrdersController : ControllerBase
 {
-    private readonly IIdentityService _identityService;
     private readonly OrderingContext _orderingContext;
+    private readonly IMediator _mediator;
 
-    public OrdersController(IIdentityService identityService, OrderingContext orderingContext)
+    public OrdersController(OrderingContext orderingContext, IMediator mediator)
     {
-        _identityService = identityService ?? throw new ArgumentNullException(nameof(identityService));
         _orderingContext = orderingContext;
+        _mediator = mediator;
     }
 
     [Route("new")]
@@ -143,18 +146,14 @@ public class OrdersController : ControllerBase
     [HttpPut]
     [ProducesResponseType((int)HttpStatusCode.OK)]
     [ProducesResponseType((int)HttpStatusCode.BadRequest)]
-    public async Task<IActionResult> ShipOrderAsync([FromBody] ShipOrderModel model)
+    public async Task<IActionResult> ShipOrderAsync([FromBody] ShipOrderRequest model)
     {
-        var orderToUpdate = await _orderingContext.Orders.FindAsync(model.OrderNumber);
-        if (orderToUpdate == null)
+        var isSuccess = await _mediator.Send(model);
+        
+        if (!isSuccess) 
         {
             return BadRequest();
         }
-
-        orderToUpdate.OrderStatusId = OrderStatus.Shipped.Id;
-        orderToUpdate.Description = "The order was shipped.";
-
-        await _orderingContext.SaveChangesAsync();
 
         return Ok();
     }
@@ -210,21 +209,7 @@ public class OrdersController : ControllerBase
     [ProducesResponseType(typeof(IEnumerable<OrderSummaryDto>), (int)HttpStatusCode.OK)]
     public async Task<ActionResult<IEnumerable<OrderSummaryDto>>> GetOrdersAsync()
     {
-        var userid = _identityService.GetUserIdentity();
-        var orders = await _orderingContext.Orders
-            .Include(o => o.OrderStatus)
-            .Include(o => o.OrderItems)
-            .Where(o => o.Buyer.IdentityGuid == userid)
-            .ToListAsync();
-
-        var orderSummary = orders
-            .Select(o => new OrderSummaryDto
-            {
-                OrderNumber = o.Id,
-                Date = o.OrderDate,
-                Status = o.OrderStatus.ToString(),
-                Total = OrderManager.GetTotal(o)
-            });
+        var orderSummary = await _mediator.Send(new GetOrdersRequest());
 
         return Ok(orderSummary);
     }

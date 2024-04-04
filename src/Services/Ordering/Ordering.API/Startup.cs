@@ -29,6 +29,11 @@ public class Startup
             .AddCustomAuthorization(Configuration)
             .AddCustomIntegrations(Configuration)
             .AddCustomConfiguration(Configuration);
+
+        services.AddMediatR(options =>
+        {
+            options.RegisterServicesFromAssemblyContaining<Startup>();
+        });
     }
 
 
