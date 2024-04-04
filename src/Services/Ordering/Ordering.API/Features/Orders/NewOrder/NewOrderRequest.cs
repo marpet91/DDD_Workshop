@@ -1,6 +1,8 @@
-﻿namespace Microsoft.eShopOnContainers.Services.Ordering.API.DTOs;
+﻿using MediatR;
 
-public record NewOrderModel
+namespace Microsoft.eShopOnContainers.Services.Ordering.API.Features.Orders.NewOrder;
+
+public record NewOrderRequest : IRequest<int>
 {        
     public string City { get; set; }
         
@@ -25,8 +27,12 @@ public record NewOrderModel
     public string Buyer { get; set; }
 
     public Guid RequestId { get; set; }
-
+    
     public List<OrderItem> OrderItems { get; set; }
+
+    public string UserId { get; set; }
+
+    public string UserName { get; set; }
 
     public record OrderItem
     {

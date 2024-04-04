@@ -1,4 +1,4 @@
-namespace Microsoft.eShopOnContainers.Services.Ordering.API.DTOs;
+namespace Microsoft.eShopOnContainers.Services.Ordering.API.Features.Orders.CreateOrderDraft;
 
 public record OrderDraftModel
 {

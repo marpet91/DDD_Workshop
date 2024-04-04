@@ -1,4 +1,6 @@
-﻿namespace Microsoft.eShopOnContainers.Services.Ordering.API.DTOs;
+﻿using Microsoft.eShopOnContainers.Services.Ordering.API.Features.Orders.CreateOrderDraft;
+
+namespace Microsoft.eShopOnContainers.Services.Ordering.API.DTOs;
 
 public static class BasketItemExtensions
 {

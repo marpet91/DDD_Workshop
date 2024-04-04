@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
+using Microsoft.eShopOnContainers.Services.Ordering.API.Features.Orders;
 
 namespace Microsoft.eShopOnContainers.Services.Ordering.API;
 

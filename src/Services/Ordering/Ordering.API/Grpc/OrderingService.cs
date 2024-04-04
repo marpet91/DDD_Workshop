@@ -1,4 +1,6 @@
-﻿namespace GrpcOrdering;
+﻿using Microsoft.eShopOnContainers.Services.Ordering.API.Features.Orders.CreateOrderDraft;
+
+namespace GrpcOrdering;
 
 public class OrderingService : OrderingGrpc.OrderingGrpcBase
 {
@@ -13,7 +15,7 @@ public class OrderingService : OrderingGrpc.OrderingGrpcBase
     {
         _logger.LogInformation("Begin grpc call from method {Method} for ordering get order draft {CreateOrderDraftCommand}", context.Method, createOrderDraftCommand);
 
-        var model = new CreateOrderDraftModel
+        var model = new CreateOrderDraftRequest
         {
             BuyerId = createOrderDraftCommand.BuyerId,
             Items = MapBasketItems(createOrderDraftCommand.Items)

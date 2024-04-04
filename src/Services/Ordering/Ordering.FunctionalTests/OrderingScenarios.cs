@@ -7,6 +7,7 @@ using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.eShopOnContainers.Services.Ordering.API.DTOs;
+using Microsoft.eShopOnContainers.Services.Ordering.API.Features.Orders.NewOrder;
 using WebMVC.Services.ModelDTOs;
 using Xunit;
 using Xunit.Abstractions;
@@ -91,9 +92,9 @@ namespace Ordering.FunctionalTests
             return JsonSerializer.Serialize(order);
         }
 
-        NewOrderModel BuildNewOrder()
+        NewOrderRequest BuildNewOrder()
         {
-            var newOrder = new NewOrderModel
+            var newOrder = new NewOrderRequest
             {
                 Street = "123 Cherry Park Ln",
                 City = "Redmond",
