@@ -12,25 +12,21 @@ public class Startup
     public IConfiguration Configuration { get; }
 
     // This method gets called by the runtime. Use this method to add services to the container.
-    public virtual IServiceProvider ConfigureServices(IServiceCollection services)
+    public virtual void ConfigureServices(IServiceCollection services)
     {
-        services.AddGrpc(options =>
-        {
-            options.EnableDetailedErrors = true;
-        });
+        services.AddGrpc(options => { options.EnableDetailedErrors = true; });
 
         RegisterAppInsights(services);
 
         services.AddControllers(options =>
             {
                 options.Filters.Add(typeof(ValidateModelStateFilter));
-
             }) // Added for functional tests
             .AddApplicationPart(typeof(BasketController).Assembly)
             .AddJsonOptions(options => options.JsonSerializerOptions.WriteIndented = true);
 
         services.AddSwaggerGen(options =>
-        {            
+        {
             options.SwaggerDoc("v1", new OpenApiInfo
             {
                 Title = "eShopOnContainers - Basket HTTP API",
@@ -45,7 +41,8 @@ public class Startup
                 {
                     Implicit = new OpenApiOAuthFlow()
                     {
-                        AuthorizationUrl = new Uri($"{Configuration.GetValue<string>("IdentityUrlExternal")}/connect/authorize"),
+                        AuthorizationUrl =
+                            new Uri($"{Configuration.GetValue<string>("IdentityUrlExternal")}/connect/authorize"),
                         TokenUrl = new Uri($"{Configuration.GetValue<string>("IdentityUrlExternal")}/connect/token"),
                         Scopes = new Dictionary<string, string>()
                         {
@@ -77,27 +74,22 @@ public class Startup
 
             return ConnectionMultiplexer.Connect(configuration);
         });
-        
+
 
         services.AddCors(options =>
         {
             options.AddPolicy("CorsPolicy",
                 builder => builder
-                .SetIsOriginAllowed((host) => true)
-                .AllowAnyMethod()
-                .AllowAnyHeader()
-                .AllowCredentials());
+                    .SetIsOriginAllowed((host) => true)
+                    .AllowAnyMethod()
+                    .AllowAnyHeader()
+                    .AllowCredentials());
         });
         services.AddSingleton<IHttpContextAccessor, HttpContextAccessor>();
         services.AddTransient<IBasketRepository, RedisBasketRepository>();
         services.AddTransient<IIdentityService, IdentityService>();
 
         services.AddOptions();
-
-        var container = new ContainerBuilder();
-        container.Populate(services);
-
-        return new AutofacServiceProvider(container.Build());
     }
 
     // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.

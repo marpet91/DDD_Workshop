@@ -12,7 +12,7 @@ public class Startup
 
     public IConfiguration Configuration { get; }
 
-    public virtual IServiceProvider ConfigureServices(IServiceCollection services)
+    public virtual void ConfigureServices(IServiceCollection services)
     {
         services
             .AddGrpc(options =>
@@ -29,12 +29,6 @@ public class Startup
             .AddCustomAuthorization(Configuration)
             .AddCustomIntegrations(Configuration)
             .AddCustomConfiguration(Configuration);
-        //configure autofac
-
-        var container = new ContainerBuilder();
-        container.Populate(services);
-        
-        return new AutofacServiceProvider(container.Build());
     }
 
 

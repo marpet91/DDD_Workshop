@@ -9,7 +9,7 @@ public class Startup
 
     public IConfiguration Configuration { get; }
 
-    public IServiceProvider ConfigureServices(IServiceCollection services)
+    public void ConfigureServices(IServiceCollection services)
     {
         services.AddAppInsight(Configuration)
             .AddGrpc().Services
@@ -18,11 +18,6 @@ public class Startup
             .AddCustomOptions(Configuration)
             .AddSwagger(Configuration)
             .AddCustomHealthCheck(Configuration);
-
-        var container = new ContainerBuilder();
-        container.Populate(services);
-
-        return new AutofacServiceProvider(container.Build());
     }
 
     public void Configure(IApplicationBuilder app, IWebHostEnvironment env, ILoggerFactory loggerFactory)

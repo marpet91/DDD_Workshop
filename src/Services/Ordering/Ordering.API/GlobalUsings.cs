@@ -1,6 +1,4 @@
 ﻿global using ApiDto = Microsoft.eShopOnContainers.Services.Ordering.API.DTOs;
-global using Autofac.Extensions.DependencyInjection;
-global using Autofac;
 global using Azure.Core;
 global using Azure.Identity;
 global using Dapper;
