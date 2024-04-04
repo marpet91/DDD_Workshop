@@ -28,7 +28,7 @@ public class GetOrdersHandler : IRequestHandler<GetOrdersRequest, IEnumerable<Or
                 OrderNumber = o.Id,
                 Date = o.OrderDate,
                 Status = o.OrderStatus.ToString(),
-                Total = OrderManager.GetTotal(o)
+                Total = o.GetTotal()
             })
             .ToList();
         

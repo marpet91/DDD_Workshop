@@ -14,24 +14,12 @@ public class NewOrderHandler : IRequestHandler<NewOrderRequest, int>
     public async Task<int> Handle(NewOrderRequest request, CancellationToken cancellationToken)
     {
         // Create the order
-        var address = new Address
-        {
-            Street = request.Street,
-            City = request.City,
-            State = request.State,
-            Country = request.Country,
-            ZipCode = request.ZipCode
-        };
-        var order = new Order
-        {
-            OrderStatusId = OrderStatus.Submitted.Id,
-            OrderDate = DateTime.UtcNow,
-            Address = address,
-        };
+        var address = new Address(request.Street, request.City, request.State, request.ZipCode, request.Country);
+        var order = new Order(address);
 
         foreach (var item in request.OrderItems)
         {
-            OrderManager.AddOrderItem(order, item.ProductId, item.ProductName, item.UnitPrice, item.Discount, item.PictureUrl, item.Units);
+            order.AddOrderItem(item.ProductId, item.ProductName, item.UnitPrice, item.Discount, item.PictureUrl, item.Units);
         }
 
         _orderingContext.Orders.Add(order);

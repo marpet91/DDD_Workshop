@@ -34,7 +34,7 @@ public class GetOrderHandler : IRequestHandler<GetOrderRequest, OrderDto>
             Country = order.Address.Country,
             Date = order.OrderDate,
             Status = order.OrderStatus.ToString(),
-            Total = OrderManager.GetTotal(order),
+            Total = order.GetTotal(),
             OrderItems = order.OrderItems.Select(orderItem => new OrderDto.OrderItem
             {
                 ProductName = orderItem.ProductName,

@@ -58,7 +58,6 @@ public class Startup
                 c.OAuthAppName("Ordering Swagger UI");
             });
 
-        app.UseRouting();
         app.UseCors("CorsPolicy");
         ConfigureAuth(app);
 

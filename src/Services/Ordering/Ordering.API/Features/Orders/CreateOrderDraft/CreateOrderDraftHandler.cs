@@ -6,14 +6,14 @@ public class CreateOrderDraftHandler : IRequestHandler<CreateOrderDraftRequest, 
 {
     public Task<OrderDraftModel> Handle(CreateOrderDraftRequest request, CancellationToken cancellationToken)
     {
-        var order = new Order();
+        var order = Order.NewDraft();
         var orderItems = request.Items.Select(i => i.ToOrderItemDTO());
         foreach (var item in orderItems)
         {
-            OrderManager.AddOrderItem(order, item.ProductId, item.ProductName, item.UnitPrice, item.Discount, item.PictureUrl, item.Units);
+            order.AddOrderItem(item.ProductId, item.ProductName, item.UnitPrice, item.Discount, item.PictureUrl, item.Units);
         }
 
-        var result = OrderDraftModel.FromOrder(order);
+        var result = CreateOrderDraftRequest.FromOrder(order);
 
         return Task.FromResult(result);
     }

@@ -6,14 +6,13 @@ public class AddressBuilder
 {
     public Address Build()
     {
-        return new Address
-        {
-            Street = "street",
-            City = "city",
-            State = "state",
-            Country = "country",
-            ZipCode = "zipcode"
-        };
+        return new Address(
+            "street",
+            "city",
+            "state",
+            "country",
+            "zipcode"
+        );
     }
 }
 
@@ -23,12 +22,7 @@ public class OrderBuilder
 
     public OrderBuilder(Address address)
     {
-        order = new Order
-        {
-            Address = address,
-            OrderStatus = OrderStatus.Submitted,
-            OrderDate = DateTime.UtcNow
-        };
+        order = new Order(address);
     }
 
     public OrderBuilder AddOne(
@@ -39,7 +33,7 @@ public class OrderBuilder
         string pictureUrl,
         int units = 1)
     {
-        OrderManager.AddOrderItem(order, productId, productName, unitPrice, discount, pictureUrl, units);
+        order.AddOrderItem(productId, productName, unitPrice, discount, pictureUrl, units);
         return this;
     }
 

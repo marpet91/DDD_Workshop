@@ -21,14 +21,14 @@ public class OrderingService : OrderingGrpc.OrderingGrpcBase
             Items = MapBasketItems(createOrderDraftCommand.Items)
         };
 
-        var order = new Order();
+        var order = Order.NewDraft();
         var orderItems = model.Items.Select(i => i.ToOrderItemDTO());
         foreach (var item in orderItems)
         {
-            OrderManager.AddOrderItem(order, item.ProductId, item.ProductName, item.UnitPrice, item.Discount, item.PictureUrl, item.Units);
+            order.AddOrderItem(item.ProductId, item.ProductName, item.UnitPrice, item.Discount, item.PictureUrl, item.Units);
         }
 
-        var data = OrderDraftModel.FromOrder(order);
+        var data = CreateOrderDraftRequest.FromOrder(order);
 
         if (data != null)
         {
