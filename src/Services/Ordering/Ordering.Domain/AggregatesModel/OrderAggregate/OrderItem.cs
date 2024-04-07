@@ -6,6 +6,16 @@ public class OrderItem
     public OrderItem(int productId, string productName, string pictureUrl, decimal unitPrice, decimal discount,
         int units)
     {
+        if (units <= 0)
+        {
+            throw new OrderingDomainException("Invalid number of units");
+        }
+
+        if ((unitPrice * units) < discount)
+        {
+            throw new OrderingDomainException("The total of order item is lower than applied discount");
+        }
+        
         ProductName = productName;
         PictureUrl = pictureUrl;
         UnitPrice = unitPrice;
@@ -29,11 +39,21 @@ public class OrderItem
 
     public void ApplyDiscount(decimal discount)
     {
+        if (discount < 0)
+        {
+            throw new OrderingDomainException("Discount is not valid");
+        }
+        
         Discount = discount;
     }
 
     public void AddUnits(int units)
     {
+        if (units < 0)
+        {
+            throw new OrderingDomainException("Invalid units");
+        }
+        
         Units += units;
     }
 }
