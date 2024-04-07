@@ -6,8 +6,11 @@ using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 using System.Threading.Tasks;
+using FluentValidation;
+using MediatR;
 using Microsoft.eShopOnContainers.Services.Ordering.API.DTOs;
 using Microsoft.eShopOnContainers.Services.Ordering.API.Features.Orders.NewOrder;
+using Microsoft.eShopOnContainers.Services.Ordering.API.Infrastructure.Behaviors;
 using WebMVC.Services.ModelDTOs;
 using Xunit;
 using Xunit.Abstractions;
@@ -59,6 +62,19 @@ namespace Ordering.FunctionalTests
             
             Assert.Equal(newOrder.Street, order.Street);
             Assert.Equal(newOrder.OrderItems.Count, order.OrderItems.Count);
+        }
+        
+        [Fact]
+        public async Task Put_validates_request()
+        {
+            using var server = CreateServer();
+            
+            var newOrder = new NewOrderRequest();
+            var content = JsonContent.Create(newOrder);
+            var response = await server.CreateClient()
+                .PutAsync(Put.NewOrder, content);
+
+            Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
         }
 
         [Fact]

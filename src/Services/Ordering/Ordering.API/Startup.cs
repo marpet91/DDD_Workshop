@@ -1,6 +1,7 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.eShopOnContainers.Services.Ordering.API.Features.Orders;
+using Microsoft.eShopOnContainers.Services.Ordering.API.Infrastructure.Behaviors;
 
 namespace Microsoft.eShopOnContainers.Services.Ordering.API;
 
@@ -34,7 +35,10 @@ public class Startup
         services.AddMediatR(options =>
         {
             options.RegisterServicesFromAssemblyContaining<Startup>();
+            options.AddOpenBehavior(typeof(ValidatorBehavior<,>));
         });
+        
+        services.AddValidatorsFromAssemblyContaining<Startup>();
     }
 
 
