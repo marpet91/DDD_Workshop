@@ -3,6 +3,7 @@
 public class Order
     : Entity
 {
+    private readonly List<OrderItem> _orderItems = new();
     protected Order() { }
     
     public Order(Address address)
@@ -20,20 +21,20 @@ public class Order
 
     public Address Address { get; private set; }
     
-    public Buyer Buyer { get; set; }
+    public Buyer Buyer { get; private set; }
 
-    public int? BuyerId { get; set; }
+    public int? BuyerId { get; private set; }
 
-    public OrderStatus OrderStatus { get; set; }
-    public int OrderStatusId { get; set; }
+    public OrderStatus OrderStatus { get; private set; }
+    public int OrderStatusId { get; private set; }
 
-    public ICollection<OrderItem> OrderItems { get; } = new List<OrderItem>();
+    public IReadOnlyCollection<OrderItem> OrderItems => _orderItems.AsReadOnly();
 
-    public string Description { get; set; }
+    public string Description { get; private set; }
 
-    public DateTime OrderDate { get; set; }
+    public DateTime OrderDate { get; private set; }
 
-    public int? PaymentMethodId { get; set; }
+    public int? PaymentMethodId { get; private set; }
 
     public decimal GetTotal() 
         => OrderItems.Sum(orderItem => orderItem.GetPrice());
@@ -57,7 +58,25 @@ public class Order
         {
             var orderItem = new OrderItem(productId, productName, pictureUrl, unitPrice, discount, units);
             
-            OrderItems.Add(orderItem);
+            _orderItems.Add(orderItem);
         }
+    }
+
+    public void MarkOrderAsShipped()
+    {
+        OrderStatusId = OrderStatus.Shipped.Id;
+        Description = "The order was shipped.";
+    }
+
+    public void MarkOrderAsCancelled()
+    {
+        OrderStatusId = OrderStatus.Cancelled.Id;
+        Description = $"The order was cancelled.";
+    }
+
+    public void AssignBuyerDetails(Buyer buyer, PaymentMethod paymentMethod)
+    {
+        Buyer = buyer;
+        PaymentMethodId = paymentMethod.Id;
     }
 }

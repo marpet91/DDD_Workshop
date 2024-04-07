@@ -3,11 +3,57 @@
 public class Buyer
     : Entity
 {
-    public string IdentityGuid { get; set; }
+    private readonly List<PaymentMethod> _paymentMethods = new();
+    private readonly List<Order> _orders = new();
 
-    public string Name { get; set; }
+    protected Buyer()
+    {
+        
+    }
 
-    public ICollection<PaymentMethod> PaymentMethods { get; } = new List<PaymentMethod>();
+    public Buyer(string identityGuid, string name)
+    {
+        IdentityGuid = identityGuid ?? throw new ArgumentNullException(nameof(identityGuid));
+        Name = name ?? throw new ArgumentNullException(nameof(name));
+    }
 
-    public ICollection<Order> Orders { get; } = new List<Order>();
+    public string IdentityGuid { get; private set; }
+
+    public string Name { get; private set; }
+
+    public IReadOnlyCollection<PaymentMethod> PaymentMethods => _paymentMethods.AsReadOnly();
+
+    public IReadOnlyCollection<Order> Orders => _orders.AsReadOnly();
+
+    public PaymentMethod VerifyOrAddPaymentMethod(string cardNumber, string securityNumber, string cardHolderName, DateTime expiration,
+        int cardTypeId, string alias)
+    {
+        PaymentMethod paymentMethod;
+        var existingPayment = PaymentMethods
+            .SingleOrDefault(p => p.CardTypeId == cardTypeId
+                                  && p.CardNumber == cardNumber
+                                  && p.Expiration == expiration);
+
+        if (existingPayment != null)
+        {
+            paymentMethod = existingPayment;
+        }
+        else
+        {
+            var payment = new PaymentMethod(
+                cardNumber, 
+                securityNumber,
+                cardHolderName,
+                expiration,
+                cardTypeId,
+                alias
+            );
+            
+            _paymentMethods.Add(payment);
+
+            paymentMethod = payment;
+        }
+
+        return paymentMethod;
+    }
 }

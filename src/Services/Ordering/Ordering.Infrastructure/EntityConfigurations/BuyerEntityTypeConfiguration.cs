@@ -22,7 +22,8 @@ class BuyerEntityTypeConfiguration
         buyerConfiguration.Property(b => b.Name);
 
         buyerConfiguration.HasMany(b => b.PaymentMethods)
-            .WithOne(pm => pm.Buyer)
+            .WithOne()
+            .HasForeignKey("BuyerId")
             .OnDelete(DeleteBehavior.Cascade);
 
         buyerConfiguration.HasMany(b => b.Orders)

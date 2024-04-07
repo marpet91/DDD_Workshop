@@ -37,40 +37,17 @@ public class NewOrderHandler : IRequestHandler<NewOrderRequest, int>
 
         if (!buyerOriginallyExisted)
         {
-            buyer = new Buyer
-            {
-                IdentityGuid = request.UserId,
-                Name = request.UserName
-            };
+            buyer = new Buyer(request.UserId, request.UserName);
         }
 
         string alias = $"Payment Method on {DateTime.UtcNow}";
-        PaymentMethod paymentMethod;
-        var existingPayment = buyer.PaymentMethods
-            .SingleOrDefault(p => p.CardTypeId == cardTypeId
-                                  && p.CardNumber == request.CardNumber
-                                  && p.Expiration == request.CardExpiration);
-
-        if (existingPayment != null)
-        {
-            paymentMethod = existingPayment;
-        }
-        else
-        {
-            var payment = new PaymentMethod
-            {
-                CardNumber = request.CardNumber,
-                SecurityNumber = request.CardSecurityNumber,
-                CardHolderName = request.CardHolderName,
-                Alias = alias,
-                Expiration = request.CardExpiration,
-                CardTypeId = cardTypeId
-            };
-
-            buyer.PaymentMethods.Add(payment);
-
-            paymentMethod = payment;
-        }
+        var paymentMethod = buyer.VerifyOrAddPaymentMethod(
+            request.CardNumber, 
+            request.CardSecurityNumber, 
+            request.CardHolderName,
+            request.CardExpiration,
+            cardTypeId,
+            alias);
 
         if (buyerOriginallyExisted)
         {
@@ -84,9 +61,8 @@ public class NewOrderHandler : IRequestHandler<NewOrderRequest, int>
         await _orderingContext.SaveChangesAsync(cancellationToken);
         
         // Update order details with buyer information
-        order.Buyer = buyer;
-        order.PaymentMethodId = paymentMethod.Id;
-        
+        order.AssignBuyerDetails(buyer, paymentMethod);
+
         _orderingContext.Orders.Update(order);
         
         await _orderingContext.SaveChangesAsync(cancellationToken);

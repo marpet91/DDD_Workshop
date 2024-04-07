@@ -36,6 +36,10 @@ class OrderEntityTypeConfiguration : IEntityTypeConfiguration<Order>
         orderConfiguration
             .HasMany(o => o.OrderItems)
             .WithOne();
+        
+        var navigation = orderConfiguration.Metadata.FindNavigation(nameof(Order.OrderItems));
+
+        navigation.SetPropertyAccessMode(PropertyAccessMode.Field);
 
         orderConfiguration.HasOne<PaymentMethod>()
             .WithMany()

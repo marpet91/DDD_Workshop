@@ -18,7 +18,7 @@ public class OrderItem
     public string PictureUrl { get; private set; }
     public decimal UnitPrice { get; private set; }
     public decimal Discount { get; private set; }
-    public int Units { get; set; }
+    public int Units { get; private set; }
 
     public int ProductId { get; private set; }
     
