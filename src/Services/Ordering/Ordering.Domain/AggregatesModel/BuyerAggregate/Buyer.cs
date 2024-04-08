@@ -1,4 +1,6 @@
-﻿namespace Microsoft.eShopOnContainers.Services.Ordering.Domain.AggregatesModel.BuyerAggregate;
+﻿using Microsoft.eShopOnContainers.Services.Ordering.Domain.Events;
+
+namespace Microsoft.eShopOnContainers.Services.Ordering.Domain.AggregatesModel.BuyerAggregate;
 
 public class Buyer
     : Entity
@@ -25,8 +27,8 @@ public class Buyer
 
     public IReadOnlyCollection<Order> Orders => _orders.AsReadOnly();
 
-    public PaymentMethod VerifyOrAddPaymentMethod(string cardNumber, string securityNumber, string cardHolderName, DateTime expiration,
-        int cardTypeId, string alias)
+    public void VerifyOrAddPaymentMethod(string cardNumber, string securityNumber, string cardHolderName, DateTime expiration,
+        int cardTypeId, string alias, int orderId)
     {
         PaymentMethod paymentMethod;
         var existingPayment = PaymentMethods
@@ -53,7 +55,12 @@ public class Buyer
 
             paymentMethod = payment;
         }
-
-        return paymentMethod;
+        
+        AddDomainEvent(new BuyerAndPaymentMethodVerifiedDomainEvent
+        {
+            Buyer = this,
+            Payment = paymentMethod,
+            OrderId = orderId 
+        });
     }
 }

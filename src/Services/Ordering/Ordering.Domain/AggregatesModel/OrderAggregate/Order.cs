@@ -1,4 +1,7 @@
-﻿namespace Microsoft.eShopOnContainers.Services.Ordering.Domain.AggregatesModel.OrderAggregate;
+﻿using Microsoft.eShopOnContainers.Services.Ordering.Domain.Commands;
+using Microsoft.eShopOnContainers.Services.Ordering.Domain.Events;
+
+namespace Microsoft.eShopOnContainers.Services.Ordering.Domain.AggregatesModel.OrderAggregate;
 
 public class Order
     : Entity
@@ -6,12 +9,33 @@ public class Order
     private readonly List<OrderItem> _orderItems = new();
     protected Order() { }
     
-    public Order(Address address)
+    public Order(INewOrderCommand request)
     {
-        Address = address ?? throw new ArgumentNullException(nameof(address));
+        var address = new Address(request.Street, request.City, request.State, request.ZipCode, request.Country);
+        var order = new Order();
+
+        Address = address;
         OrderStatusId = OrderStatus.Submitted.Id;
         OrderDate = DateTime.UtcNow;
+
+        foreach (var item in request.OrderItems)
+        {
+            order.AddOrderItem(item.ProductId, item.ProductName, item.UnitPrice, item.Discount, item.PictureUrl, item.Units);
+        }
+        
+        AddDomainEvent(new OrderStartedDomainEvent
+        {
+            Order = order,
+            CardSecurityNumber = request.CardSecurityNumber,
+            CardTypeId = request.CardTypeId,
+            CardExpiration = request.CardExpiration,
+            CardNumber = request.CardNumber,
+            UserId = request.UserId,
+            UserName = request.UserName,
+            CardHolderName = request.CardHolderName
+        });
     }
+
 
     public static Order NewDraft()
     {

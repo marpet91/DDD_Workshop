@@ -16,4 +16,3 @@ global using Microsoft.eShopOnContainers.Services.Ordering.API.Controllers;
 global using System.Linq;
 global using Microsoft.eShopOnContainers.Services.Ordering.Domain.SeedWork;
 global using Microsoft.eShopOnContainers.Services.Ordering.Domain.Exceptions;
-global using UnitTest.Ordering;

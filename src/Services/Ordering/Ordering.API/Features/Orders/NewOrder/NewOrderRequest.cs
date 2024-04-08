@@ -1,8 +1,9 @@
 ﻿using MediatR;
+using Microsoft.eShopOnContainers.Services.Ordering.Domain.Commands;
 
 namespace Microsoft.eShopOnContainers.Services.Ordering.API.Features.Orders.NewOrder;
 
-public record NewOrderRequest : IRequest<int>
+public record NewOrderRequest : IRequest<int>, INewOrderCommand
 {        
     public string City { get; set; }
         
@@ -30,11 +31,13 @@ public record NewOrderRequest : IRequest<int>
     
     public List<OrderItem> OrderItems { get; set; }
 
+    IEnumerable<INewOrderCommand.IOrderItem> INewOrderCommand.OrderItems => OrderItems;
+    
     public string UserId { get; set; }
 
     public string UserName { get; set; }
 
-    public record OrderItem
+    public record OrderItem : INewOrderCommand.IOrderItem
     {
         public int ProductId { get; init; }
 
