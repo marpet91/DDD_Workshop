@@ -17,7 +17,7 @@ public class NewOrderHandler : IRequestHandler<NewOrderRequest, int>
         // Create the order
         var order = new Order(request);
 
-        _orderingContext.Orders.Add(order);
+        var _ = _orderingContext.Orders.Add(order).Entity;
         
         await _orderingContext.SaveEntitiesAsync(cancellationToken);
         

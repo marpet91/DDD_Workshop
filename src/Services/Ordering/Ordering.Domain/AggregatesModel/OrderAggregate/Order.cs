@@ -12,7 +12,6 @@ public class Order
     public Order(INewOrderCommand request)
     {
         var address = new Address(request.Street, request.City, request.State, request.ZipCode, request.Country);
-        var order = new Order();
 
         Address = address;
         OrderStatusId = OrderStatus.Submitted.Id;
@@ -20,12 +19,12 @@ public class Order
 
         foreach (var item in request.OrderItems)
         {
-            order.AddOrderItem(item.ProductId, item.ProductName, item.UnitPrice, item.Discount, item.PictureUrl, item.Units);
+            AddOrderItem(item.ProductId, item.ProductName, item.UnitPrice, item.Discount, item.PictureUrl, item.Units);
         }
         
         AddDomainEvent(new OrderStartedDomainEvent
         {
-            Order = order,
+            Order = this,
             CardSecurityNumber = request.CardSecurityNumber,
             CardTypeId = request.CardTypeId,
             CardExpiration = request.CardExpiration,

@@ -20,8 +20,6 @@ public class UpdateOrderWhenBuyerAndPaymentMethodVerifiedDomainEventHandler
         
         // Update order details with buyer information
         order.AssignBuyerDetails(notification.Buyer, notification.Payment);
-
-        _orderingContext.Orders.Update(order);
         
         await _orderingContext.SaveEntitiesAsync(cancellationToken);
 
