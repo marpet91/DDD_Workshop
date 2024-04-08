@@ -8,6 +8,8 @@ class BuyerEntityTypeConfiguration
         buyerConfiguration.ToTable("buyers", OrderingContext.DEFAULT_SCHEMA);
 
         buyerConfiguration.HasKey(b => b.Id);
+        
+        buyerConfiguration.Ignore(b => b.DomainEvents);
 
         buyerConfiguration.Property(b => b.Id)
             .UseHiLo("buyerseq", OrderingContext.DEFAULT_SCHEMA);

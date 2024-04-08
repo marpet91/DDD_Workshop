@@ -7,6 +7,8 @@ class OrderEntityTypeConfiguration : IEntityTypeConfiguration<Order>
         orderConfiguration.ToTable("orders", OrderingContext.DEFAULT_SCHEMA);
 
         orderConfiguration.HasKey(o => o.Id);
+        
+        orderConfiguration.Ignore(b => b.DomainEvents);
 
         orderConfiguration.Property(o => o.Id)
             .UseHiLo("orderseq", OrderingContext.DEFAULT_SCHEMA);

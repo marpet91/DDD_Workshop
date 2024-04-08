@@ -13,7 +13,6 @@ public class NewOrderValidator : AbstractValidator<NewOrderRequest>
         RuleFor(command => command.CardHolderName).NotEmpty();
         RuleFor(command => command.CardExpiration).NotEmpty().Must(BeValidExpirationDate).WithMessage("Please specify a valid card expiration date");
         RuleFor(command => command.CardSecurityNumber).NotEmpty().Length(3);
-        RuleFor(command => command.CardTypeId).NotEmpty();
         RuleFor(command => command.OrderItems).Must(ContainOrderItems).WithMessage("No order items found");
     }
     

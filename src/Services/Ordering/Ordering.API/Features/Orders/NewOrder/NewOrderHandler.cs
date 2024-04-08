@@ -24,7 +24,7 @@ public class NewOrderHandler : IRequestHandler<NewOrderRequest, int>
 
         _orderingContext.Orders.Add(order);
         
-        await _orderingContext.SaveChangesAsync(cancellationToken);
+        await _orderingContext.SaveEntitiesAsync(cancellationToken);
         
         // Create or update the buyer details
         var cardTypeId = request.CardTypeId != 0 ? request.CardTypeId : 1;
@@ -58,14 +58,14 @@ public class NewOrderHandler : IRequestHandler<NewOrderRequest, int>
             _orderingContext.Buyers.Add(buyer);
         }
         
-        await _orderingContext.SaveChangesAsync(cancellationToken);
+        await _orderingContext.SaveEntitiesAsync(cancellationToken);
         
         // Update order details with buyer information
         order.AssignBuyerDetails(buyer, paymentMethod);
 
         _orderingContext.Orders.Update(order);
         
-        await _orderingContext.SaveChangesAsync(cancellationToken);
+        await _orderingContext.SaveEntitiesAsync(cancellationToken);
 
         return order.Id;
     }
