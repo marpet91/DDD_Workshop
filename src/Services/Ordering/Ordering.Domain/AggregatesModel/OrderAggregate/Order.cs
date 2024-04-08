@@ -108,5 +108,7 @@ public class Order
         Buyer = buyer;
         PaymentMethodId = paymentMethod.Id;
         OrderStatusId = OrderStatus.AwaitingValidation.Id;
+
+        AddDomainEvent(new OrderAwaitingValidationDomainEvent { Order = this });
     }
 }

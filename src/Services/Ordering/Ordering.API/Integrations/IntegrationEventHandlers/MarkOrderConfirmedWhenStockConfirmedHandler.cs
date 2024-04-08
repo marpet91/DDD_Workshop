@@ -12,8 +12,12 @@ public class MarkOrderConfirmedWhenOrderConfirmedHandler : IHandleMessages<Order
         _orderingContext = orderingContext;
     }
     
-    public Task Handle(OrderStockConfirmedEvent message, IMessageHandlerContext context)
+    public async Task Handle(OrderStockConfirmedEvent message, IMessageHandlerContext context)
     {
-        return Task.CompletedTask;
+        var order = await _orderingContext.Orders.FindAsync([message.OrderId], context.CancellationToken);
+        
+        order.MarkOrderAsStockConfirmed();
+
+        await _orderingContext.SaveEntitiesAsync(context.CancellationToken);
     }
 }

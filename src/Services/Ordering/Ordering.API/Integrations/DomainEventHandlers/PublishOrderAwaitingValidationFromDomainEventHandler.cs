@@ -14,8 +14,19 @@ public class PublishOrderAwaitingValidationFromDomainEventHandler : INotificatio
         _messageSession = messageSession;
     }
     
-    public Task Handle(OrderAwaitingValidationDomainEvent notification, CancellationToken cancellationToken)
+    public async Task Handle(OrderAwaitingValidationDomainEvent notification, CancellationToken cancellationToken)
     {
-        return Task.CompletedTask;
+        var message = new OrderAwaitingValidationEvent
+        {
+            OrderId = notification.Order.Id,
+            OrderItems = notification.Order.OrderItems.Select(item => new OrderAwaitingValidationEvent.OrderItem
+                {
+                    ProductId = item.ProductId,
+                    Quantity = item.Units
+                }
+            ).ToList()
+        };
+
+        await _messageSession.Publish(message, cancellationToken);
     }
 }
