@@ -12,12 +12,8 @@ public class MarkOrderCancelledWhenStockRejectedHandler : IHandleMessages<OrderS
         _orderingContext = orderingContext;
     }
     
-    public async Task Handle(OrderStockRejectedEvent message, IMessageHandlerContext context)
+    public Task Handle(OrderStockRejectedEvent message, IMessageHandlerContext context)
     {
-        var order = await _orderingContext.Orders.FindAsync([message.OrderId], context.CancellationToken);
-        
-        order.MarkOrderAsCancelled();
-
-        await _orderingContext.SaveEntitiesAsync(context.CancellationToken);
+        return Task.CompletedTask;
     }
 }
