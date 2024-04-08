@@ -11,6 +11,7 @@
         var item = Model.OrderItems[i];
 
         <article class="esh-orders_new-items esh-orders_new-items--border row">
+            <input type="hidden" value="@item.ProductId" name=@("orderitems[" + i + "].ProductId") />
             <section class="esh-orders_new-item col-md-4 hidden-md-down">
                 <img class="esh-orders_new-image" src="@item.PictureUrl">
                 <input type="hidden" value="@item.PictureUrl" name=@("orderitems[" + i + "].PictureUrl") />

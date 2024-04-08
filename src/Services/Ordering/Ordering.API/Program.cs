@@ -1,4 +1,7 @@
-﻿var configuration = GetConfiguration();
+﻿using NServiceBus;
+using NServiceBus.TransactionalSession;
+
+var configuration = GetConfiguration();
 
 Log.Logger = CreateSerilogLogger(configuration);
 
@@ -34,28 +37,55 @@ finally
     Log.CloseAndFlush();
 }
 
-IWebHost BuildWebHost(IConfiguration configuration, string[] args) =>
-    WebHost.CreateDefaultBuilder(args)
-        .CaptureStartupErrors(false)
-        .ConfigureKestrel(options =>
+IHost BuildWebHost(IConfiguration configuration, string[] args)
+{
+
+
+    //hostBuilder.UseNServiceBus(endpointConfiguration);
+    
+    return Host.CreateDefaultBuilder(args)
+        .UseNServiceBus(context =>
         {
-            var ports = GetDefinedPorts(configuration);
-            options.Listen(IPAddress.Any, ports.httpPort, listenOptions =>
-            {
-                listenOptions.Protocols = HttpProtocols.Http1AndHttp2;
-            });
+            var endpointConfiguration = new EndpointConfiguration("Microsoft.eShopOnContainers.Services.Ordering");
+            var transport = endpointConfiguration.UseTransport(
+                new RabbitMQTransport(RoutingTopology.Conventional(QueueType.Quorum), 
+                    $"amqp://{context.Configuration["EventBusConnection"]}"));
 
-            options.Listen(IPAddress.Any, ports.grpcPort, listenOptions =>
-            {
-                listenOptions.Protocols = HttpProtocols.Http2;
-            });
+            endpointConfiguration.UseSerialization<SystemJsonSerializer>();
+                
+            endpointConfiguration.EnableInstallers();
+            
+            endpointConfiguration.UseAttributeConventions();
 
+            var persistence = endpointConfiguration.UsePersistence<SqlPersistence>();
+            persistence.SqlDialect<SqlDialect.MsSqlServer>();
+            persistence.ConnectionBuilder(() => new SqlConnection(context.Configuration["ConnectionString"]));
+
+            persistence.EnableTransactionalSession();
+
+            endpointConfiguration.EnableOutbox();
+            
+            return endpointConfiguration;
         })
-        .ConfigureAppConfiguration(x => x.AddConfiguration(configuration))
-        .UseStartup<Startup>()
-        .UseContentRoot(Directory.GetCurrentDirectory())
+        .ConfigureWebHostDefaults(builder =>
+        {
+            builder.CaptureStartupErrors(false)
+                .ConfigureKestrel(options =>
+                {
+                    var ports = GetDefinedPorts(configuration);
+                    options.Listen(IPAddress.Any, ports.httpPort,
+                        listenOptions => { listenOptions.Protocols = HttpProtocols.Http1AndHttp2; });
+
+                    options.Listen(IPAddress.Any, ports.grpcPort,
+                        listenOptions => { listenOptions.Protocols = HttpProtocols.Http2; });
+                })
+                .ConfigureAppConfiguration(x => x.AddConfiguration(configuration))
+                .UseStartup<Startup>()
+                .UseContentRoot(Directory.GetCurrentDirectory());
+        })
         .UseSerilog()
         .Build();
+}
 
 Serilog.ILogger CreateSerilogLogger(IConfiguration configuration)
 {

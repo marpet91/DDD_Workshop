@@ -1,7 +1,10 @@
+using MediatR;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.OpenIdConnect;
 using Microsoft.eShopOnContainers.Services.Ordering.API.Features.Orders;
 using Microsoft.eShopOnContainers.Services.Ordering.API.Infrastructure.Behaviors;
+using NServiceBus.Persistence;
+using NServiceBus.Persistence.Sql;
 
 namespace Microsoft.eShopOnContainers.Services.Ordering.API;
 
@@ -36,6 +39,7 @@ public class Startup
         {
             options.RegisterServicesFromAssemblyContaining<Startup>();
             options.AddOpenBehavior(typeof(ValidatorBehavior<,>));
+            options.AddOpenBehavior(typeof(TransactionSessionBehavior<,>));
         });
         
         services.AddValidatorsFromAssemblyContaining<Startup>();
@@ -174,17 +178,40 @@ static class CustomExtensionsMethods
 
     public static IServiceCollection AddCustomDbContext(this IServiceCollection services, IConfiguration configuration)
     {
-        services.AddDbContext<OrderingContext>(options =>
-                {
-                    options.UseSqlServer(configuration["ConnectionString"],
-                        sqlServerOptionsAction: sqlOptions =>
-                        {
-                            sqlOptions.MigrationsAssembly(typeof(Startup).GetTypeInfo().Assembly.GetName().Name);
-                            sqlOptions.EnableRetryOnFailure(maxRetryCount: 15, maxRetryDelay: TimeSpan.FromSeconds(30), errorNumbersToAdd: null);
-                        });
-                },
-                    ServiceLifetime.Scoped  //Showing explicitly that the DbContext is shared across the HTTP request scope (graph of objects started in the HTTP request)
-                );
+        services.AddScoped(b =>
+        {
+            if (b.GetService<ISynchronizedStorageSession>() is ISqlStorageSession { Connection: not null } session)
+            {
+                var mediator = b.GetRequiredService<IMediator>();
+                var context = new OrderingContext(new DbContextOptionsBuilder<OrderingContext>()
+                    .UseSqlServer(session.Connection, sqlOptions =>
+                    {
+                        sqlOptions.MigrationsAssembly(typeof(Startup).GetTypeInfo().Assembly.GetName().Name);
+                    })
+                    .Options,
+                    mediator);
+
+                //Use the same underlying ADO.NET transaction
+                context.Database.UseTransaction(session.Transaction);
+
+                //Ensure context is flushed before the transaction is committed
+                session.OnSaveChanges((s, cancellationToken) => context.SaveChangesAsync(cancellationToken));
+
+                return context;
+            }
+            else
+            {
+                var mediator = b.GetRequiredService<IMediator>();
+                var context = new OrderingContext(new DbContextOptionsBuilder<OrderingContext>()
+                    .UseSqlServer(configuration["ConnectionString"], sqlOptions =>
+                    {
+                        sqlOptions.MigrationsAssembly(typeof(Startup).GetTypeInfo().Assembly.GetName().Name);
+                        sqlOptions.EnableRetryOnFailure(maxRetryCount: 15, maxRetryDelay: TimeSpan.FromSeconds(30), errorNumbersToAdd: null);
+                    })
+                    .Options, mediator);
+                return context;
+            }
+        });
 
         return services;
     }

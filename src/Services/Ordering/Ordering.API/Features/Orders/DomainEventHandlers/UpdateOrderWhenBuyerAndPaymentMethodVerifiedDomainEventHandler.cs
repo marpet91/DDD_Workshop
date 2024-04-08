@@ -16,12 +16,11 @@ public class UpdateOrderWhenBuyerAndPaymentMethodVerifiedDomainEventHandler
     public async Task Handle(BuyerAndPaymentMethodVerifiedDomainEvent notification, CancellationToken cancellationToken)
     {
         var order = await _orderingContext.Orders.FindAsync(notification.OrderId)
-            ?? throw new OrderingDomainException("Invalid Order ID");
-        
+                    ?? throw new OrderingDomainException("Invalid Order ID");
+
         // Update order details with buyer information
         order.AssignBuyerDetails(notification.Buyer, notification.Payment);
-        
-        await _orderingContext.SaveEntitiesAsync(cancellationToken);
 
+        await _orderingContext.SaveEntitiesAsync(cancellationToken);
     }
 }

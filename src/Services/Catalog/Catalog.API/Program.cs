@@ -1,4 +1,6 @@
-﻿var configuration = GetConfiguration();
+﻿using NServiceBus;
+
+var configuration = GetConfiguration();
 
 Log.Logger = CreateSerilogLogger(configuration);
 
@@ -32,28 +34,44 @@ finally
     Log.CloseAndFlush();
 }
 
-IWebHost CreateHostBuilder(IConfiguration configuration, string[] args) =>
-  WebHost.CreateDefaultBuilder(args)
-      .ConfigureAppConfiguration(x => x.AddConfiguration(configuration))
-      .CaptureStartupErrors(false)
-      .ConfigureKestrel(options =>
-      {
-          var ports = GetDefinedPorts(configuration);
-          options.Listen(IPAddress.Any, ports.httpPort, listenOptions =>
-          {
-              listenOptions.Protocols = HttpProtocols.Http1AndHttp2;
-          });
-          options.Listen(IPAddress.Any, ports.grpcPort, listenOptions =>
-          {
-              listenOptions.Protocols = HttpProtocols.Http2;
-          });
+IHost CreateHostBuilder(IConfiguration configuration, string[] args) =>
+    Host.CreateDefaultBuilder(args)
+        .ConfigureAppConfiguration(x => x.AddConfiguration(configuration))
+        .UseNServiceBus(context =>
+        {
+            var endpointConfiguration = new EndpointConfiguration("Microsoft.eShopOnContainers.Services.Catalog");
+            var transport = endpointConfiguration.UseTransport(
+                new RabbitMQTransport(RoutingTopology.Conventional(QueueType.Quorum), 
+                    $"amqp://{context.Configuration["EventBusConnection"]}"));
 
-      })
-      .UseStartup<Startup>()
-      .UseContentRoot(Directory.GetCurrentDirectory())
-      .UseWebRoot("Pics")
-      .UseSerilog()
-      .Build();
+            endpointConfiguration.UseSerialization<SystemJsonSerializer>();
+                
+            endpointConfiguration.EnableInstallers();
+            
+            endpointConfiguration.UseAttributeConventions();
+            
+            return endpointConfiguration;
+        })
+        .ConfigureWebHostDefaults(builder =>
+        {
+            builder.CaptureStartupErrors(false)
+                .ConfigureKestrel(options =>
+                {
+                    var ports = GetDefinedPorts(configuration);
+                    options.Listen(IPAddress.Any, ports.httpPort,
+                        listenOptions => { listenOptions.Protocols = HttpProtocols.Http1AndHttp2; });
+                    options.Listen(IPAddress.Any, ports.grpcPort,
+                        listenOptions => { listenOptions.Protocols = HttpProtocols.Http2; });
+
+                })
+                .UseStartup<Startup>()
+                .UseContentRoot(Directory.GetCurrentDirectory())
+                .UseWebRoot("Pics");
+        })
+        .UseSerilog()
+        .Build();
+
+
 
 Serilog.ILogger CreateSerilogLogger(IConfiguration configuration)
 {

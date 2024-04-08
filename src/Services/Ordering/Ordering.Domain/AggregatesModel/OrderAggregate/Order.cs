@@ -96,10 +96,17 @@ public class Order
         OrderStatusId = OrderStatus.Cancelled.Id;
         Description = $"The order was cancelled.";
     }
+    
+    public void MarkOrderAsStockConfirmed()
+    {
+        OrderStatusId = OrderStatus.StockConfirmed.Id;
+        Description = "All the items were confirmed with available stock.";
+    }
 
     public void AssignBuyerDetails(Buyer buyer, PaymentMethod paymentMethod)
     {
         Buyer = buyer;
         PaymentMethodId = paymentMethod.Id;
+        OrderStatusId = OrderStatus.AwaitingValidation.Id;
     }
 }
