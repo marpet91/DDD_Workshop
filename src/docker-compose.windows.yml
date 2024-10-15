@@ -22,11 +22,6 @@ services:
       args:
         NODE_IMAGE: stefanscherer/node-windows:10
 
-  webspa:
-    build:
-      args:
-        NODE_IMAGE: stefanscherer/node-windows:10
-
   webmvc:
     build:
       args:
