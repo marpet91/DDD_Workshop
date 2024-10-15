@@ -97,14 +97,6 @@ static_resources:
                 upstream_local_address: "%UPSTREAM_LOCAL_ADDRESS%"
               path: "/tmp/access.log"
   clusters:
-  - name: shoppingagg
-    connect_timeout: 0.25s
-    type: strict_dns
-    lb_policy: round_robin
-    hosts:
-    - socket_address:
-        address: mobileshoppingagg
-        port_value: 80
   - name: catalog
     connect_timeout: 0.25s
     type: strict_dns
